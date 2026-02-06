@@ -15,6 +15,7 @@ using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Microsoft.Extensions.DependencyInjection;
 using SRF.Knx.Core;
+using SRF.Knx.Core.DPT;
 
 namespace SRF.Knx.Config.OpenHab;
 
@@ -454,7 +455,7 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
             {
                 // use the Falcon SDK to get dimension from DPT
                 var dpt = dptFactory.Get(ets.DPT.Main, ets.DPT.Sub);
-                if (dpt != null && dpt is DptSimple simpleDpt)
+                if (dpt != null && dpt is DptSimple simpleDpt && simpleDpt.NumericInfo != null && !string.IsNullOrWhiteSpace(simpleDpt.NumericInfo.Unit))
                 {
                     ohgac.Channel.KnxUnit = simpleDpt.NumericInfo.Unit;
                     ohgac.Channel.Dimension = unitSystemConfig.DimensionLookups.FirstOrDefault(dlut => dlut.Units.Any(u => u.Equals(simpleDpt.NumericInfo.Unit)))?.Dimension;

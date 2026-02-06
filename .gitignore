@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Project-specific files
+knx_master.xml
+
 # User-specific files
 *.rsuser
 *.suo
@@ -482,3 +485,5 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+**/knx_master.xml

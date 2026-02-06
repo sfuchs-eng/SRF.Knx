@@ -1,3 +1,5 @@
+using SRF.Knx.Core;
+
 namespace SRF.Knx.Config.Domain;
 
 /// <summary>
@@ -8,14 +10,14 @@ public class DomainExtraConfig
 {
     public List<Thing> Things { get; set; } = [];
 
-    public IEnumerable<GroupAddressExtraConfig> GetGAExtraConfig(KnxGroupAddress groupAddress)
+    public IEnumerable<GroupAddressExtraConfig> GetGAExtraConfig(GroupAddress groupAddress)
     {
         return [
             .. Things.SelectMany(t => t.GroupAddresses.Where(a => a.Key == groupAddress.Address).Select(a => a.Value))
         ];
     }
 
-    public bool TryGetGAExtraConfig(KnxGroupAddress groupAddress, out GroupAddressExtraConfig? extraConfig)
+    public bool TryGetGAExtraConfig(GroupAddress groupAddress, out GroupAddressExtraConfig? extraConfig)
     {
         extraConfig = GetGAExtraConfig(groupAddress).FirstOrDefault();
         return extraConfig != null;

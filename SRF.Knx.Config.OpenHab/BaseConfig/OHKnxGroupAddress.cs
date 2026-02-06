@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using SRF.Knx.Config.ETS5;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.OpenHab.BaseConfig;
 
@@ -13,10 +14,10 @@ namespace SRF.Knx.Config.OpenHab.BaseConfig;
 [Serializable]
 public partial class OHKnxGroupAddress : IEquatable<OHKnxGroupAddress>{
     [JsonIgnore]
-    public KnxGroupAddress Address { get; set; } = new(0);
+    public Core.GroupAddress Address { get; set; } = new(0);
 
     [JsonPropertyName("Address")]
-    public string Address3L { get => Address.Address.To3LGroupAddress(); set => Address = KnxGroupAddress.Parse(value); }
+    public string Address3L { get => Address.Address.To3LGroupAddress(); set => Address = Core.GroupAddress.Parse(value); }
 
     public Domain.ExtraConfigStatus EntryStatus { get; set; } = Domain.ExtraConfigStatus.Automatic | Domain.ExtraConfigStatus.Fresh;
 

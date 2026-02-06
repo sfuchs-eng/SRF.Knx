@@ -1,5 +1,6 @@
 using SRF.Knx.Config.Domain;
 using SRF.Knx.Config.OpenHab.BaseConfig;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.OpenHab;
 
@@ -10,7 +11,7 @@ public class GroupAddressConfigSet
     public required OHKnxGroupAddress OpenHab { get; init; }
 
     public static GroupAddressConfigSet Get(
-        KnxGroupAddress groupAddress,
+        Core.GroupAddress groupAddress,
         DomainConfiguration domainConfig,
         OHKnxGroupAddress ohGAC,
         Func<IEnumerable<GroupAddressExtraConfig>, GroupAddressExtraConfig>? extraConfigResolver = null

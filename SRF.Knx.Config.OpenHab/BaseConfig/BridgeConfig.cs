@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.OpenHab.BaseConfig;
 
@@ -23,13 +24,13 @@ public class BridgeConfig
         }
         set
         {
-            KnxDeviceAddress = new KnxDeviceAddress(value);
+            KnxDeviceAddress = new IndividualAddress(value);
         }
     }
 
     [XmlIgnore]
     [JsonIgnore]
-    public KnxDeviceAddress KnxDeviceAddress { get; set; } = new("0.0.0");
+    public IndividualAddress KnxDeviceAddress { get; set; } = new("0.0.0");
 
     [XmlAttribute]
     public BridgeType Type { get; set; } = BridgeType.ROUTER;

@@ -1,6 +1,7 @@
 using SRF.Knx.Config.Domain;
 using SRF.Knx.Config.Domain.ConfigModifiers;
 using SRF.Knx.Config.ETS5;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config;
 
@@ -33,7 +34,7 @@ public interface IDomainConfigurationFactory
     /// </summary>
     public void UpdateConfigFiles(IEnumerable<IDomainConfigModifier> domainConfigModifiers, DomainConfiguration? allowOverwriteWith = null);
 
-    public Thing AssociateThing(KnxGroupAddress groupAddress, DomainConfiguration domainConfig, out bool isNewThing, out bool gotNewlyAssociated);
+    public Thing AssociateThing(GroupAddress groupAddress, DomainConfiguration domainConfig, out bool isNewThing, out bool gotNewlyAssociated);
     public Thing AssociateThing(EtsGroupAddressConfig gac, GroupAddressExtraConfig gaec, DomainExtraConfig extraConfig, out bool isNewThing, out bool gotNewlyAssociated);
 
     void ApplyConfigurationUpdates(IEnumerable<IDomainConfigModifier> dcUpdates, DomainConfiguration domainConfiguration);

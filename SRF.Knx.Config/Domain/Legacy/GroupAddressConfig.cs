@@ -3,6 +3,7 @@
 using System.Xml.Linq;
 using System.Text;
 using SRF.Knx.Config.Exceptions;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.Domain.Legacy;
 
@@ -58,7 +59,7 @@ public class GroupAddressConfig : KnxGroupAddressConfig
     {
         GroupAddress = ga; // assigns Name & Label
 
-        Address = new KnxGroupAddress(ga.Address);
+        Address = new GroupAddress(ga.Address);
 
         try
         {
@@ -83,7 +84,7 @@ public class GroupAddressConfig : KnxGroupAddressConfig
     {
         string? tmp = null;
 
-        Address = new KnxGroupAddress(x.Attribute("Address")?.Value ?? "0/0/0");
+        Address = new GroupAddress(x.Attribute("Address")?.Value ?? "0/0/0");
         AddressInt = Address.Address;
 
         IsNew = x.Attribute("New") != null;

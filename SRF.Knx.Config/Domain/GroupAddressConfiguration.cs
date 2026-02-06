@@ -1,10 +1,11 @@
 using SRF.Knx.Config.ETS5;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.Domain;
 
 public class GroupAddressConfiguration
 {
-    public GroupAddressConfiguration(KnxGroupAddress address, DomainConfiguration domainConfig)
+    public GroupAddressConfiguration(GroupAddress address, DomainConfiguration domainConfig)
     {
         Ets = domainConfig.GroupAddresses.GetValueOrDefault(address.Address, new());
         Extra = domainConfig.Extra.GetGAExtraConfig(address).FirstOrDefault();

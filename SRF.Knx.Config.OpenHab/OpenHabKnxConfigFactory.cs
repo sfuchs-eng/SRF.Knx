@@ -16,6 +16,7 @@ using SRF.Knx.Config.OpenHab.UnitSystem;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Microsoft.Extensions.DependencyInjection;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.OpenHab;
 
@@ -337,7 +338,7 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
     /// - derive Items for channels
     /// Legacy approach was to generate an OpenHAB Item for each GroupAddress - originates from OpenHAB 2 usage.
     /// </summary>
-    public OHKnxGroupAddress CreateOpenHabGAC(KnxGroupAddress groupAddress, DomainConfiguration domainConfig)
+    public OHKnxGroupAddress CreateOpenHabGAC(Core.GroupAddress groupAddress, DomainConfiguration domainConfig)
     {
         // should this GA belong to a particular Thing? Which? --> go along Domain config.
         var thing = domainConfigurationFactory.AssociateThing(groupAddress, domainConfig, out _, out _);

@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.Domain;
 

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using SRF.Knx.Config.Domain.ConfigModifiers;
 using SRF.Knx.Config.ETS5;
 using SRF.Knx.Config.Exceptions;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.Domain;
 
@@ -180,7 +181,7 @@ public class DomainConfigurationFactory(
         return modifiers;
     }
 
-    public Thing AssociateThing(KnxGroupAddress groupAddress, DomainConfiguration domainConfig, out bool isNewThing, out bool gotNewlyAssociated)
+    public Thing AssociateThing(GroupAddress groupAddress, DomainConfiguration domainConfig, out bool isNewThing, out bool gotNewlyAssociated)
     {
         var gac = domainConfig.GroupAddresses[groupAddress.Address];
         var gaec = domainConfig.Extra.GetGAExtraConfig(groupAddress).SingleOrDefault()

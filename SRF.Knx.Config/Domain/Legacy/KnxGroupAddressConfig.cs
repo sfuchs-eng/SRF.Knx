@@ -1,11 +1,12 @@
 using System;
 using System.Xml.Linq;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.Domain.Legacy;
 
 public class KnxGroupAddressConfig
 {
-    public KnxGroupAddress Address { get; set; } = new();
+    public GroupAddress Address { get; set; } = new();
     public string Name { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
     public string ItemType { get; set; } = string.Empty;
@@ -34,7 +35,7 @@ public class KnxGroupAddressConfig
     {
         string? tmp = null;
 
-        Address = new KnxGroupAddress(x.Attribute("Address")?.Value ?? throw new Exceptions.KnxGAConfigurationException("missing GAC address attribute"));
+        Address = new GroupAddress(x.Attribute("Address")?.Value ?? throw new Exceptions.KnxGAConfigurationException("missing GAC address attribute"));
 
         IsNew = x.Attribute("New") != null;
 

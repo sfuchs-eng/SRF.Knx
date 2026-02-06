@@ -2,6 +2,7 @@ using SRF.Knx.Config.Domain;
 using SRF.Knx.Config.Domain.Legacy;
 using SRF.Knx.Config.OpenHab.BaseConfig;
 using SRF.Knx.Config.OpenHab.BaseConfig.Modifiers;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.OpenHab;
 
@@ -20,6 +21,6 @@ public interface IOpenHabKnxConfigFactory
     public void WriteOHConfigFiles(KnxOpenHabConfig knxOpenHabConfig);
     void SaveBaseConfig(KnxOpenHabConfig openHabConfig);
     IEnumerable<IOpenHabKnxBaseConfigModifier> OverrideWithLegacy(Domain.DomainConfiguration domainConfiguration, KnxOpenHabConfig cfg, List<KnxGroupAddressConfig> legacyGAC);
-    OHKnxGroupAddress CreateOpenHabGAC(KnxGroupAddress groupAddress, DomainConfiguration domainConfig);
+    OHKnxGroupAddress CreateOpenHabGAC(Core.GroupAddress groupAddress, DomainConfiguration domainConfig);
     public void OverrideConfigsFromLegacy(string legacyGroupAddressConfigFile, out DomainConfiguration domainConfiguration, out KnxOpenHabConfig openHabConfig);
 }

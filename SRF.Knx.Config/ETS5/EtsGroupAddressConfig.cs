@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config.ETS5;
 
@@ -28,7 +29,7 @@ public class EtsGroupAddressConfig
         }
         set
         {
-            Address = new KnxGroupAddress(value);
+            Address = new GroupAddress(value);
         }
     }   
     [XmlIgnore]
@@ -36,7 +37,7 @@ public class EtsGroupAddressConfig
     public bool AddressSpecified { get => Address.Address == 0; set { } }
     [XmlIgnore]
     [JsonIgnore]
-    public KnxGroupAddress Address { get; set; } = new();
+    public GroupAddress Address { get; set; } = new();
 
     [XmlAttribute]
     public bool Unfiltered { get; set; }

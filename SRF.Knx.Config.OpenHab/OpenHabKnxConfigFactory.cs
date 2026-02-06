@@ -10,8 +10,6 @@ using SRF.Knx.Config.OpenHab.BaseConfig.Modifiers;
 using SRF.Knx.Config.OpenHab.DptMapping;
 using SRF.Knx.Config.OpenHab.Generate;
 using SRF.Knx.Config.OpenHab.Templating;
-using Knx.Falcon;
-using Knx.Falcon.ApplicationData.DatapointTypes;
 using SRF.Knx.Config.OpenHab.UnitSystem;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
@@ -42,13 +40,14 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
 
     public ILabelToNameConverter LabelToNameConverter { get; set; } = new DefaultLabelToNameConverter();
 
-    private readonly DptFactory dptFactory = DptFactory.Default;
+    private readonly IDptFactory dptFactory;
 
     private readonly JsonSerializerOptions jsonSerializerOptions;
 
     public OpenHabKnxConfigFactory(
         IOptions<KnxConfiguration> knxConfigOptions,
         IDomainConfigurationFactory domainConfigurationFactory,
+        IDptFactory dptFactory,
         ILoggerFactory loggerFactory,
         IServiceProvider serviceProvider)
     {
@@ -57,6 +56,7 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
         this.domainConfigurationFactory = domainConfigurationFactory;
         this.loggerFactory = loggerFactory;
         this.serviceProvider = serviceProvider;
+        this.dptFactory = dptFactory;
         var ohVersion = knxConfig.OpenHab.OpenHabVersion;
         CfgObjProvider = ohVersion switch
         {
@@ -368,7 +368,7 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
         // Dpt mapping overrides
         // TODO: make them smarter by looking at entire things. E.g. Dimmer has an on/off 1.001 for a dimmer channel type on a different parameter than a simple light switch without dimmer function.
         var dptMappingCandidates = dptMappingLookup
-            .Where(dptm => dptm.DPTs.Select(d => new DPT(d)).Any(d => ohgac.DPT?.Equals(d) ?? false))
+            .Where(dptm => dptm.DPTs.Select(d => new DataPointTypeId(d)).Any(d => ohgac.DPT?.Equals(d) ?? false))
             .ToArray();
         if (dptMappingCandidates.Length == 0)
         {

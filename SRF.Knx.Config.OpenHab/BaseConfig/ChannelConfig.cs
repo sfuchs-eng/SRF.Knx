@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using SRF.Knx.Config.ETS5;
 using SRF.Knx.Config.OpenHab.DptMapping;
 using SRF.Knx.Config.OpenHab.Generate;
+using SRF.Knx.Core.DPT;
 
 namespace SRF.Knx.Config.OpenHab.BaseConfig;
 
@@ -23,7 +23,7 @@ public partial class OHKnxGroupAddress
         public string? DPTs { get => DPT?.DotFormat; set => DPT = new(value); }
 
         [JsonIgnore]
-        public DPT? DPT { get; set; }
+        public DataPointTypeId? DPT { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool IsStateOwned { get; set; } = false;

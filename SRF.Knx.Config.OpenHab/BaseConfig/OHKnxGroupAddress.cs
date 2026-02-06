@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
-using SRF.Knx.Config.ETS5;
 using SRF.Knx.Core;
+using SRF.Knx.Core.DPT;
 
 namespace SRF.Knx.Config.OpenHab.BaseConfig;
 
@@ -45,7 +45,7 @@ public partial class OHKnxGroupAddress : IEquatable<OHKnxGroupAddress>{
     [JsonIgnore]
     public string? DPTs { get => Channel.DPT?.DotFormat; set => Channel.DPT = new(value); }
     [JsonIgnore]
-    public DPT? DPT { get => Channel.DPT; set => Channel.DPT = value; }
+    public DataPointTypeId? DPT { get => Channel.DPT; set => Channel.DPT = value; }
 
     [JsonIgnore]
     public string? Icon { get => Item?.Icon; set => (Item ?? throw new IndexOutOfRangeException("got no ItemConfig")).Icon = value; }

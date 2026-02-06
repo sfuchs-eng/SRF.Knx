@@ -17,14 +17,14 @@ See the command line tool `SRF.Network.Cli` in the [SRF.Network](https://github.
 
 ### One time setup per KNX ETS project
 
-- Pool your config files in a separate git repository:
-  - Get the `project-20` folder in which there's the `knx-master.xml` file from your ETS installation.
-  - Copy the [Resources](./Resources/) folder with content, update [OpenHabItemTemplates.json](./Resources/OpenHabItemTemplates.json) to suit your Group Address naming patterns.
+- Pool your config files in a separate git repository, using the templates from the [Resources](./Resources/) folder of this repo. This allows you to keep track of changes in your KNX configuration and to easily update your OpenHAB configuration when you change the KNX configuration in ETS.:
+  - Get the `project-20` folder in which there's the `knx_master.xml` file from your ETS installation. Copy the entire folder.
+  - Update [OpenHabItemTemplates.json](./Resources/OpenHabItemTemplates.json) in that new folder to suit your Group Address naming patterns.
   - The mapping file [OpenHabDptMappings.json](./Resources/OpenHabDptMappings.json) should not require adaptions.
   - Export the Group Address configuration from ETS 5 to the XML format export file.
-  ETS 4 won't work due to missing DPT information, 6 tbc.
+  ETS 4 won't work due to missing DPT information. ETS 6 could not be tested yet.
   - Adjust [OpenHabItemTemplates.json](./Resources/OpenHabItemTemplates.json) to the needs of your project(s)
-- Ensure the configuration settings of `KnxConfiguration` are reflected either in your appsettings.json or, better, in a user specific configuration file
+- Ensure the configuration settings of `KnxConfiguration` are reflected either in your appsettings.json or in a user specific configuration file. If you're using `SRF.Network.Cli`, the latter is the recommended approach, using a file named
 `SRF.Network.json` placed in the AppData directory, e.g. [/home/sfuchs/.config/SRF.Network.json](/home/sfuchs/.config/SRF.Network.json). By default, `KnxConfiguration` is bound to config section `Knx`.
 
 Example file SRF.Network.json in the AppData directory:

@@ -1,8 +1,8 @@
 using System.Data;
 using Microsoft.Extensions.Logging;
-using SRF.Knx.Config.ETS5;
 using SRF.Knx.Config.Exceptions;
 using SRF.Knx.Config.OpenHab.BaseConfig;
+using SRF.Knx.Core.DPT;
 
 namespace SRF.Knx.Config.OpenHab.Generate.Base;
 
@@ -28,8 +28,8 @@ public class Channel : IConfigGenerator, IChannel
         Type = DetermineChannelType();
     }
 
-    protected record ItemChannelMapping(string ItemType, ChannelType ChannelType, string SubChannel, DPT DefaultDPT);
-    protected static readonly DPT InvalidDPT = new();
+    protected record ItemChannelMapping(string ItemType, ChannelType ChannelType, string SubChannel, DataPointTypeId DefaultDPT);
+    protected static readonly DataPointTypeId InvalidDPT = new();
     protected static readonly string InvalidItemTypeName = "item-to-channel-type-mapping-failure";
     /// <summary>
     /// Maps an <see cref="Templating.Items.ItemType"/> contained in a <see cref="OHKnxGroupAddress"/> to an OpenHAB channel type.
@@ -39,17 +39,17 @@ public class Channel : IConfigGenerator, IChannel
     protected static readonly Dictionary<string, ItemChannelMapping> ItemToChannelTypeMap = new ItemChannelMapping[]
     {
         new("Color", ChannelType.NotSupported, "", InvalidDPT),
-        new("Contact", ChannelType.Contact, "ga", new DPT("1.009")),
-        new("DateTime", ChannelType.DateTime, "ga", new DPT("19.001")),
-        new("Dimmer", ChannelType.Dimmer, "position", new DPT("5.001")),
+        new("Contact", ChannelType.Contact, "ga", new DataPointTypeId("1.009")),
+        new("DateTime", ChannelType.DateTime, "ga", new DataPointTypeId("19.001")),
+        new("Dimmer", ChannelType.Dimmer, "position", new DataPointTypeId("5.001")),
         new("Group", ChannelType.NotSupported, "", InvalidDPT),
         new("Image", ChannelType.NotSupported, "", InvalidDPT),
         new("Location", ChannelType.NotSupported, "", InvalidDPT),
-        new("Number", ChannelType.Number, "ga", new DPT("9.001")),
+        new("Number", ChannelType.Number, "ga", new DataPointTypeId("9.001")),
         new("Player", ChannelType.NotSupported, "", InvalidDPT),
-        new("Rollershutter", ChannelType.Rollershutter, "position", new DPT("5.001")),
-        new("String", ChannelType.String, "ga", new DPT("16.001")),
-        new("Switch", ChannelType.Switch, "ga", new DPT("1.001")),
+        new("Rollershutter", ChannelType.Rollershutter, "position", new DataPointTypeId("5.001")),
+        new("String", ChannelType.String, "ga", new DataPointTypeId("16.001")),
+        new("Switch", ChannelType.Switch, "ga", new DataPointTypeId("1.001")),
         //
         new(InvalidItemTypeName, ChannelType.NotSupported, "", InvalidDPT)
     }.ToDictionary(
@@ -68,7 +68,7 @@ public class Channel : IConfigGenerator, IChannel
         return chanType.ChannelType;
     }
 
-    protected virtual DPT DPT
+    protected virtual DataPointTypeId DPT
     {
         get
         {

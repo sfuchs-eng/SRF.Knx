@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using SRF.Knx.Core;
+using SRF.Knx.Core.DPT;
 
 namespace SRF.Knx.Config.ETS5;
 
@@ -54,21 +55,21 @@ public class EtsGroupAddressConfig
         }
         set
         {
-            DPT = new DPT(value);
+            DPT = new DataPointTypeId(value);
         }
     }
     [XmlIgnore]
     [JsonIgnore]
     public bool DPTsSpecified { get => _dpt != null && _dpt.IsValidType; }
 
-    private DPT? _dpt;
+    private DataPointTypeId? _dpt;
     [XmlIgnore]
     [JsonIgnore]
-    public DPT DPT
+    public DataPointTypeId DPT
     {
         get
         {
-            _dpt ??= DPT.CreateInvalid();
+            _dpt ??= DataPointTypeId.CreateInvalid();
             return _dpt; // ?? throw new Exceptions.KnxGAConfigurationException($"DPT of ETS GA {Address} is not configured.");
         }
         set

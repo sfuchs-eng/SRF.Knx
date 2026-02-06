@@ -3,13 +3,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Xml.Schema;
 using System.Xml;
 
-namespace SRF.Knx.Config.ETS5;
+namespace SRF.Knx.Core.DPT;
 
 /// <summary>
 /// KNX Data Point Type
 ///TODO: support "vendor specific" DPTs, like e.g. 232.60000 (MDT HSB instead of RGBW 232.600) or 251.60600 (single frame instead of separate with 251.600) needed for OpenHAB
 /// </summary>
-public class DPT : IEquatable<DPT>, IEqualityComparer<DPT>, IXmlSerializable
+public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<DataPointTypeId>, IXmlSerializable
 {
     /// <summary>
     /// Main Type
@@ -23,13 +23,19 @@ public class DPT : IEquatable<DPT>, IEqualityComparer<DPT>, IXmlSerializable
 
     public bool IsMainOnly => Sub == 0;
 
-    public DPT(string? dpts)
+    public DataPointTypeId(string? dpts)
     {
         InitFromString(dpts);
     }
 
-    public DPT()
+    public DataPointTypeId()
     {
+    }
+
+    public DataPointTypeId(int main, int sub = 0)
+    {
+        Main = main;
+        Sub = sub;
     }
 
     public bool IsValidMainType { get => Main != 0; }
@@ -86,16 +92,16 @@ public class DPT : IEquatable<DPT>, IEqualityComparer<DPT>, IXmlSerializable
     /// Equals each <see cref="Main"/> &amp; <see cref="Sub"/> unless one of the two is <see cref="IsMainOnly"/>, then only Main are equaled.
     /// E.g. DPT 1 equals DPT 1.001, but DPT 1.001 does not equal DPT 1.002
     /// </summary>
-    public bool Equals(DPT? other)
+    public bool Equals(DataPointTypeId? other)
     {
         return (Main == other?.Main && Sub == other?.Sub) || ((IsMainOnly || (other?.IsMainOnly ?? false)) && Main == other?.Main);
     }
 
     public override bool Equals(object? obj)
     {
-        if (obj == null || obj is not DPT)
+        if (obj == null || obj is not DataPointTypeId)
             return false;
-        return Equals(obj as DPT);
+        return Equals(obj as DataPointTypeId);
     }
 
     public string DotFormat { get
@@ -121,12 +127,12 @@ public class DPT : IEquatable<DPT>, IEqualityComparer<DPT>, IXmlSerializable
         return DotFormat;
     }
 
-    public bool Equals(DPT? x, DPT? y)
+    public bool Equals(DataPointTypeId? x, DataPointTypeId? y)
     {
         return x != null && y != null && x.Equals(y);
     }
 
-    public int GetHashCode([DisallowNull] DPT obj)
+    public int GetHashCode([DisallowNull] DataPointTypeId obj)
     {
         HashCode hc = new HashCode();
         hc.Add(Main);
@@ -161,7 +167,7 @@ public class DPT : IEquatable<DPT>, IEqualityComparer<DPT>, IXmlSerializable
         writer.WriteAttributeString("DPT", EtsFormat);
     }
 
-    public static DPT CreateInvalid()
+    public static DataPointTypeId CreateInvalid()
     {
         return new();
     }

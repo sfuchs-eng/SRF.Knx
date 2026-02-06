@@ -20,4 +20,8 @@
     <Using Include="NUnit.Framework" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../SRF.Knx.Core/SRF.Knx.Core.csproj" />
+  </ItemGroup>
+
 </Project>

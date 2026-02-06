@@ -28,6 +28,9 @@ public class MasterData
 
     [XmlElement("DatapointTypes")]
     public DatapointTypes? DatapointTypes { get; set; }
+
+    [XmlElement("PropertyDataTypes")]
+    public PropertyDataTypes? PropertyDataTypes { get; set; }
 }
 
 /// <summary>

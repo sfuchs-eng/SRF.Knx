@@ -120,4 +120,62 @@ public static class KnxMasterDataExample
             Console.WriteLine($"  {dpt.Id}: {dpt.Name} - {dpt.Text}");
         }
     }
+
+    /// <summary>
+    /// Example: Display property data types
+    /// </summary>
+    public static void DisplayPropertyDataTypes(string knxMasterXmlPath)
+    {
+        // Load the master data from XML file
+        var masterData = KnxMasterDataLoader.LoadFromFile(knxMasterXmlPath);
+
+        // Get all property data types
+        var propertyTypes = KnxMasterDataLoader.GetPropertyDataTypes(masterData);
+
+        Console.WriteLine($"Loaded {propertyTypes.Count} property data types");
+        Console.WriteLine();
+
+        // Display all property data types
+        foreach (var pdt in propertyTypes)
+        {
+            var sizeInfo = pdt.HasSize ? $"{pdt.Size} bytes" : "variable length";
+            var readSizeInfo = pdt.HasReadSize ? $", ReadSize: {pdt.ReadSize}" : "";
+            Console.WriteLine($"{pdt.Id}: {pdt.Name} - Size: {sizeInfo}{readSizeInfo}");
+        }
+    }
+
+    /// <summary>
+    /// Example: Get specific property data type by name
+    /// </summary>
+    public static void GetPropertyDataType(string knxMasterXmlPath, string pdtName)
+    {
+        var masterData = KnxMasterDataLoader.LoadFromFile(knxMasterXmlPath);
+        
+        // Get specific property data type by name
+        var pdt = KnxMasterDataLoader.GetPropertyDataTypeByName(masterData, pdtName);
+        
+        if (pdt == null)
+        {
+            Console.WriteLine($"Property data type '{pdtName}' not found");
+            return;
+        }
+
+        Console.WriteLine($"Property Data Type: {pdt.Id}");
+        Console.WriteLine($"Name: {pdt.Name}");
+        Console.WriteLine($"Number: {pdt.Number}");
+        
+        if (pdt.HasSize)
+        {
+            Console.WriteLine($"Size: {pdt.Size} bytes");
+        }
+        else
+        {
+            Console.WriteLine("Size: Variable length");
+        }
+
+        if (pdt.HasReadSize)
+        {
+            Console.WriteLine($"Read Size: {pdt.ReadSize} bytes");
+        }
+    }
 }

@@ -330,4 +330,204 @@ public class KnxMasterDataLoaderTests
         Assert.That(dpt1.DatapointSubtypes!.DatapointSubtype, Is.Not.Empty);
         Assert.That(dpt1.DatapointSubtypes.DatapointSubtype.Count, Is.GreaterThan(1));
     }
+
+    #region PropertyDataType Tests
+
+    [Test]
+    public void LoadFromFile_ValidFile_ContainsPropertyDataTypes()
+    {
+        // Act
+        var result = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Assert
+        Assert.That(result.MasterData, Is.Not.Null);
+        Assert.That(result.MasterData!.PropertyDataTypes, Is.Not.Null);
+        Assert.That(result.MasterData.PropertyDataTypes!.PropertyDataType, Is.Not.Empty);
+    }
+
+    [Test]
+    public void GetPropertyDataTypes_ValidMasterData_ReturnsAllPropertyDataTypes()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act
+        var result = KnxMasterDataLoader.GetPropertyDataTypes(masterData);
+
+        // Assert
+        Assert.That(result, Is.Not.Empty);
+        Assert.That(result.Count, Is.GreaterThan(20), "Expected multiple PDT types");
+    }
+
+    [Test]
+    public void GetPropertyDataTypes_NoMasterData_ReturnsEmptyList()
+    {
+        // Arrange
+        var masterData = new KnxMasterData();
+
+        // Act
+        var result = KnxMasterDataLoader.GetPropertyDataTypes(masterData);
+
+        // Assert
+        Assert.That(result, Is.Empty);
+    }
+
+    [Test]
+    public void GetPropertyDataTypeByNumber_ExistingNumber_ReturnsCorrectType()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act
+        var result = KnxMasterDataLoader.GetPropertyDataTypeByNumber(masterData, 1);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Id, Is.EqualTo("PDT-1"));
+        Assert.That(result.Number, Is.EqualTo(1));
+        Assert.That(result.Name, Is.EqualTo("PDT_CHAR"));
+        Assert.That(result.Size, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void GetPropertyDataTypeByNumber_NonExistingNumber_ReturnsNull()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act
+        var result = KnxMasterDataLoader.GetPropertyDataTypeByNumber(masterData, 99999);
+
+        // Assert
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public void GetPropertyDataTypeById_ExistingId_ReturnsCorrectType()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act
+        var result = KnxMasterDataLoader.GetPropertyDataTypeById(masterData, "PDT-10");
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Number, Is.EqualTo(10));
+        Assert.That(result.Name, Is.EqualTo("PDT_FLOAT"));
+        Assert.That(result.Size, Is.EqualTo(4));
+    }
+
+    [Test]
+    public void GetPropertyDataTypeById_NonExistingId_ReturnsNull()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act
+        var result = KnxMasterDataLoader.GetPropertyDataTypeById(masterData, "PDT-99999");
+
+        // Assert
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public void GetPropertyDataTypeByName_ExistingName_ReturnsCorrectType()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act
+        var result = KnxMasterDataLoader.GetPropertyDataTypeByName(masterData, "PDT_UNSIGNED_INT");
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Id, Is.EqualTo("PDT-4"));
+        Assert.That(result.Number, Is.EqualTo(4));
+        Assert.That(result.Size, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void GetPropertyDataTypeByName_NonExistingName_ReturnsNull()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act
+        var result = KnxMasterDataLoader.GetPropertyDataTypeByName(masterData, "PDT_NON_EXISTENT");
+
+        // Assert
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public void PropertyDataType_VariableLength_HasNoSize()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act - PDT-16 is PDT_VARIABLE_LENGTH with no Size attribute
+        var result = KnxMasterDataLoader.GetPropertyDataTypeByNumber(masterData, 16);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Name, Is.EqualTo("PDT_VARIABLE_LENGTH"));
+        Assert.That(result.HasSize, Is.False);
+        Assert.That(result.SizeSpecified, Is.False);
+    }
+
+    [Test]
+    public void PropertyDataType_WithReadSize_HasCorrectAttributes()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act - PDT-0 is PDT_CONTROL with both Size and ReadSize
+        var result = KnxMasterDataLoader.GetPropertyDataTypeByNumber(masterData, 0);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Name, Is.EqualTo("PDT_CONTROL"));
+        Assert.That(result.Size, Is.EqualTo(10));
+        Assert.That(result.ReadSize, Is.EqualTo(1));
+        Assert.That(result.HasSize, Is.True);
+        Assert.That(result.HasReadSize, Is.True);
+    }
+
+    [Test]
+    public void PropertyDataType_UTF8_HasNoSize()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act - PDT-47 is PDT_UTF-8 with no Size
+        var result = KnxMasterDataLoader.GetPropertyDataTypeByNumber(masterData, 47);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Name, Is.EqualTo("PDT_UTF-8"));
+        Assert.That(result.HasSize, Is.False);
+    }
+
+    [Test]
+    public void PropertyDataTypes_AllRequiredFieldsPresent()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act
+        var pdts = KnxMasterDataLoader.GetPropertyDataTypes(masterData);
+
+        // Assert
+        Assert.That(pdts, Is.Not.Empty);
+        
+        foreach (var pdt in pdts)
+        {
+            Assert.That(pdt.Id, Is.Not.Empty, $"PDT {pdt.Number} has empty Id");
+            Assert.That(pdt.Name, Is.Not.Empty, $"PDT {pdt.Number} has empty Name");
+            Assert.That(pdt.Number, Is.GreaterThanOrEqualTo(0), $"PDT {pdt.Id} has invalid Number");
+        }
+    }
+
+    #endregion
 }

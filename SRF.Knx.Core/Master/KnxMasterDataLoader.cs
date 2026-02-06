@@ -129,4 +129,47 @@ public static class KnxMasterDataLoader
         var dpt = GetDatapointTypeByNumber(masterData, dptNumber);
         return dpt?.DatapointSubtypes?.DatapointSubtype.FirstOrDefault(dpst => dpst.Number == dpstNumber);
     }
+
+    /// <summary>
+    /// Gets all property data types from the master data
+    /// </summary>
+    /// <param name="masterData">KNX master data</param>
+    /// <returns>List of property data types</returns>
+    public static List<PropertyDataType> GetPropertyDataTypes(KnxMasterData masterData)
+    {
+        return masterData.MasterData?.PropertyDataTypes?.PropertyDataType ?? [];
+    }
+
+    /// <summary>
+    /// Gets a specific property data type by its number
+    /// </summary>
+    /// <param name="masterData">KNX master data</param>
+    /// <param name="pdtNumber">PDT number (e.g., 1 for PDT-1)</param>
+    /// <returns>Property data type or null if not found</returns>
+    public static PropertyDataType? GetPropertyDataTypeByNumber(KnxMasterData masterData, int pdtNumber)
+    {
+        return GetPropertyDataTypes(masterData).FirstOrDefault(pdt => pdt.Number == pdtNumber);
+    }
+
+    /// <summary>
+    /// Gets a specific property data type by its ID
+    /// </summary>
+    /// <param name="masterData">KNX master data</param>
+    /// <param name="pdtId">PDT ID (e.g., "PDT-1")</param>
+    /// <returns>Property data type or null if not found</returns>
+    public static PropertyDataType? GetPropertyDataTypeById(KnxMasterData masterData, string pdtId)
+    {
+        return GetPropertyDataTypes(masterData).FirstOrDefault(pdt => pdt.Id == pdtId);
+    }
+
+    /// <summary>
+    /// Gets a specific property data type by its name
+    /// </summary>
+    /// <param name="masterData">KNX master data</param>
+    /// <param name="pdtName">PDT name (e.g., "PDT_CHAR", "PDT_UNSIGNED_INT")</param>
+    /// <returns>Property data type or null if not found</returns>
+    public static PropertyDataType? GetPropertyDataTypeByName(KnxMasterData masterData, string pdtName)
+    {
+        return GetPropertyDataTypes(masterData).FirstOrDefault(pdt => pdt.Name == pdtName);
+    }
 }

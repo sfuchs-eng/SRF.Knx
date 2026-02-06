@@ -15,6 +15,8 @@ The KNX master data contains definitions of all standard datapoint types (DPT) a
 - **`DatapointTypes`**: Collection of all datapoint types
 - **`DatapointType`**: Represents a DPT (e.g., DPT-1, DPT-9) with metadata
 - **`DatapointSubtype`**: Represents a DPST (e.g., DPST-1-1, DPST-9-1) with specific format
+- **`PropertyDataTypes`**: Collection of all property data types
+- **`PropertyDataType`**: Represents a PDT (e.g., PDT-1, PDT-5) used for device properties
 
 ### Format Elements
 
@@ -117,6 +119,33 @@ foreach (var dpt in datapoints)
         var defaultMarker = dpst.Default ? " [DEFAULT]" : "";
         Console.WriteLine($"  {dpst.Id}: {dpst.Name} - {dpst.Text}{defaultMarker}");
     }
+}
+```
+
+### Query Property Data Types
+
+```csharp
+// Get all property data types
+var allPdts = KnxMasterDataLoader.GetPropertyDataTypes(masterData);
+Console.WriteLine($"Total PDTs: {allPdts.Count}");
+
+// Get specific PDT by number
+var pdt1 = KnxMasterDataLoader.GetPropertyDataTypeByNumber(masterData, 1);
+Console.WriteLine($"{pdt1.Id}: {pdt1.Name} - Size: {pdt1.Size} bytes");
+
+// Get specific PDT by ID
+var pdtFloat = KnxMasterDataLoader.GetPropertyDataTypeById(masterData, "PDT-10");
+Console.WriteLine($"PDT-10: {pdtFloat.Name} ({pdtFloat.Size} bytes)");
+
+// Get specific PDT by name
+var pdtChar = KnxMasterDataLoader.GetPropertyDataTypeByName(masterData, "PDT_CHAR");
+Console.WriteLine($"{pdtChar.Id}: {pdtChar.Name}");
+
+// Check for variable-length types
+var pdtVarLen = KnxMasterDataLoader.GetPropertyDataTypeById(masterData, "PDT-16");
+if (pdtVarLen != null && !pdtVarLen.HasSize)
+{
+    Console.WriteLine($"{pdtVarLen.Name} is variable-length");
 }
 ```
 

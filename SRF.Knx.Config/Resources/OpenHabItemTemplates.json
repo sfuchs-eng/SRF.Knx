@@ -1,0 +1,345 @@
+{
+  "ItemTemplates": [
+    {
+      "Template": {
+        "Type": "Dimmer",
+        "Icon": "rollershutter",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "_Lamellen_.*_(Position|Winkel)$"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Switch",
+        "Icon": "motion",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "(PIR_.*_enable)|(_Surveillance_detektion_PIR_)"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Dimmer",
+        "Icon": "slider",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "Lampe[n]?.*value$"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Switch",
+        "Icon": "light",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "Lampe[n]?"
+      ],
+      "DPTMatches": [
+        "DPST-1-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Dimmer",
+        "Icon": "light",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "Lampe[n]?"
+      ],
+      "DPTMatches": [
+        "DPST-3-7"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Dimmer",
+        "Icon": "sound",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "volume rel-dimm"
+      ],
+      "DPTMatches": [
+        "DPST-3-7"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Switch",
+        "Icon": "socket",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "[Ss]teckdose"
+      ],
+      "DPTMatches": [
+        "DPST-1-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "Icon": "rollershutter",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "Szene_Storen",
+        "Szene_Lamellen"
+      ],
+      "DPTMatches": [
+        "DPST-17-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "Icon": "light",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "Szene_Licht",
+        "Szene_Lampen"
+      ],
+      "DPTMatches": [
+        "DPST-17-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "Icon": "default",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "DPTMatches": [
+        "DPST-17-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Dimmer",
+        "Icon": "heating",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "Heizungsventil"
+      ],
+      "DPTMatches": [
+        "DPST-5-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Dimmer",
+        "Icon": "default",
+        "IsReadable": true
+      },
+      "Patterns": [
+        "status$"
+      ],
+      "DPTMatches": [
+        "DPST-5-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Dimmer",
+        "Icon": "default",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "DPTMatches": [
+        "DPST-5-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "Icon": "sun"
+      },
+      "Patterns": [
+        "sun.*\\(deg\\)"
+      ],
+      "DPTMatches": [
+        "DPST-5-3"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Contact",
+        "Icon": "window",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "Fenster"
+      ],
+      "DPTMatches": [
+        "DPST-1-9"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Contact",
+        "Icon": "error",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "overload"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "ValueFormat": "[%.1f C]",
+        "Icon": "temperature",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "[tT]emperature?"
+      ],
+      "DPTMatches": [
+        "DPST-9-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "ValueFormat": "[%.1f lux]",
+        "Icon": "sun",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "DPTMatches": [
+        "DPST-9-4"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "ValueFormat": "[%.1f lux]",
+        "Icon": "sun",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "[hH]elligkeit"
+      ],
+      "DPTMatches": [
+        "DPT-9"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "ValueFormat": "[%.1f m/s]",
+        "Icon": "wind",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "DPTMatches": [
+        "DPST-9-5"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Switch",
+        "Icon": "alarm",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "[aA]larm",
+        "error"
+      ],
+      "DPTMatches": [
+        "DPST-1-5",
+        "DPST-1-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Switch",
+        "ValueFormat": "fix DPT=1.017",
+        "Icon": "led_r1",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "Patterns": [
+        "[tT]rigger",
+        "[rR]equest"
+      ],
+      "DPTMatches": [
+        "DPST-1-17",
+        "DPST-1-1",
+        "DPT-1"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Switch",
+        "Icon": "led_b",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "DPTMatches": [
+        "DPST-1-17"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Switch",
+        "Icon": "switch",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "DPTMatches": [
+        "DPT-1",
+        "DPST-1-1",
+        "DPST-1-3"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "ValueFormat": "[%.1f V]",
+        "Icon": "energy",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "DPTMatches": [
+        "DPST-14-27"
+      ]
+    },
+    {
+      "Template": {
+        "Type": "Number",
+        "ValueFormat": "[%.1f A]",
+        "Icon": "energy",
+        "IsWritable": true,
+        "IsReadable": true
+      },
+      "DPTMatches": [
+        "DPST-14-19"
+      ]
+    }
+  ]
+}

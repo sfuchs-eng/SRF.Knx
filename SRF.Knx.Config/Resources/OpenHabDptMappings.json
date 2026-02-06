@@ -1,0 +1,350 @@
+[
+    {
+        "Comment": "Switch, trigger, contact, alarm, ...; 1.009: Attention: Due to a bug in the original implementation, the states for DPT 1.009 are inverted (i.e., 1 is mapped to OPEN instead of CLOSE). A change would break all existing installations and is therefore not implemented.",
+        "DPTs": [
+            "1.001", "1.002", "1.003", "1.004", "1.005", "1.006", "1.007", "1.009",
+            "1.011", "1.012", "1.013", "1.014", "1.015", "1.016",
+            "1.021", "1.023", "1.024", "1.100", "1.1200", "1.1201"
+        ],
+        "Channels": [
+            {
+                "Stereotype": "Actuator",
+                "ChannelType": "Switch",
+                "ItemType": "Switch"
+            },
+            {
+                "Stereotype": "Sensor",
+                "ChannelType": "Contact",
+                "ItemType": "Contact"
+            },
+            {
+                "Stereotype": "Actuator",
+                "ChannelType": "Color",
+                "Parameter": "switch",
+                "ItemType": "Color"
+            },
+            {
+                "Stereotype": "Actuator",
+                "ChannelType": "Dimmer",
+                "Parameter": "switch",
+                "ItemType": "Dimmer"
+            }
+        ]
+    },
+    {
+        "DPTs": ["1.008"],
+        "Channels": [{
+                "Stereotype": "Actuator",
+                "ChannelType": "Rollershutter",
+                "Parameter": "upDown",
+                "ItemType": "Rollershutter"
+            }]
+    },
+    {
+        "Comment": "StopMoveType (e.g. for rollershutter)",
+        "DPTs": ["1.010"],
+        "Channels": [{
+            "Stereotype": "Actuator",
+            "ChannelType": "Rollershutter",
+            "Parameter": "stopMove",
+            "ItemType": "Rollershutter"
+        }]
+    },
+    {
+        "Comment": "Trigger, use states OFF or CLOSED",
+        "DPTs": ["1.017"],
+        "Channels": [
+            {
+                "Stereotype": "Event",
+                "ChannelType": "Switch",
+                "ItemType": "Switch"
+            },
+            {
+                "Stereotype": "Sensor",
+                "ChannelType": "Contact",
+                "ItemType": "Contact"
+            }
+        ]
+    },
+    {
+        "Comment": "Window contacts, use states CLOSED(1) or OPEN(0)",
+        "DPTs": ["1.019"],
+        "Channels": [
+            {
+                "Stereotype": "Sensor",
+                "ChannelType": "Contact",
+                "ItemType": "Contact"
+            }
+        ]
+    },
+    {
+        "Comment": "IncreaseDecreaseType (e.g. dimmer)",
+        "DPTs": ["3.007"],
+        "Channels": [{
+            "Stereotype": "Actuator",
+            "ChannelType": "Dimmer",
+            "Parameter": "increaseDecrease",
+            "ItemType": "Dimmer"
+        },
+        {
+            "Stereotype": "Actuator",
+            "ChannelType": "Color",
+            "Parameter": "increaseDecrease",
+            "ItemType": "Color"
+        }]
+    },
+    {
+        "DPTs": ["3.008"],
+        "Channels": [{
+            "Stereotype": "Actuator",
+            "ChannelType": "Rollershutter",
+            "Parameter": "upDown",
+            "ItemType": "Rollershutter"
+        }]
+    },
+    {
+        "Comment": "0-100% ~ 0-255; QuantityType<>, Alternatively: PercentType",
+        "DPTs": ["5.001"],
+        "Channels": [{
+            "Stereotype": "Actuator",
+            "ChannelType": "Dimmer",
+            "Parameter": "position",
+            "ItemType": "Dimmer",
+            "Dimension": "Dimensionless"
+        },
+        {
+            "Stereotype": "Any",
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "Dimensionless"
+        },
+        {
+            "Stereotype": "Actuator",
+            "ChannelType": "Rollershutter",
+            "Parameter": "position",
+            "ItemType": "Rollershutter"
+        },
+        {
+            "Stereotype": "Actuator",
+            "ChannelType": "Color",
+            "Parameter": "position",
+            "ItemType": "Color"
+        }]
+    },
+    {
+        "Comment": "KNX Angle: 5.003: 0-360° ~ 0-255; ...",
+        "DPTs": ["5.003", "8.011"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "Angle"
+        }]
+    },
+    {
+        "Comment": "0-255% ~ 0-255; straight percent, no scaling",
+        "DPTs": ["5.004", "8.010"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "Dimensionless"
+        }]
+    },
+    {
+        "Comment": "-128..127%, no mapping to PercentType",
+        "DPTs": ["6.001"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "Dimensionless"
+        }]
+    },
+    {
+        "Comment": "6.020: Override with DPT5.010 if you need DecimalType; 16.000 ASCII; 16.001 ISO 8859-1",
+        "DPTs": ["6.020", "16.000", "16.001"],
+        "Channels": [{
+            "ChannelType": "String",
+            "ItemType": "String"
+        }]
+    },
+    {
+        "DPTs": ["7.011", "7.013", "8.012"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "Length"
+        }]
+    },
+    {
+        "DPTs": ["7.012"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "ElectricCurrent"
+        }]
+    },
+    {
+        "DPTs": ["7.600"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "Temperature"
+        }]
+    },
+    {
+        "Comment": "Volumes",
+        "DPTs": ["12.1200", "12.1201"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "Volume"
+        }]
+    },
+    {
+        "Comment": "Scene recall",
+        "DPTs": ["17.001"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number"
+        }]
+    },
+    {
+        "Comment": "Scene storage",
+        "DPTs": ["18.001"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number"
+        }]
+    },
+    {
+        "Comment": "20.xxx: KNX Enum; Override with DPT 5.010 if you need enum as DecimalType",
+        "DPTs": ["20"],
+        "Channels": [{
+            "ChannelType": "String",
+            "ItemType": "String"
+        }]
+    },
+    {
+        "Comment": "21.xxx: KNX bitset; Override with DPT 5.010 if you need bitset as DecimalType",
+        "DPTs": ["21"],
+        "Channels": [{
+            "ChannelType": "String",
+            "ItemType": "String"
+        }]
+    },
+    {
+        "Comment": "22.xxx: KNX bitset; Override with DPT 7.010 if you need bitset as DecimalType",
+        "DPTs": ["22"],
+        "Channels": [{
+            "ChannelType": "String",
+            "ItemType": "String"
+        }]
+    },
+    {
+        "Comment": "Null-terminated KNX string",
+        "DPTs": ["28.001"],
+        "Channels": [{
+            "ChannelType": "String",
+            "ItemType": "String"
+        }]
+    },
+    {
+        "Comment": "Various string types",
+        "DPTs": ["243.600", "249.600", "250.600", "252.600", "253.600", "254.600"],
+        "Channels": [{
+            "ChannelType": "String",
+            "ItemType": "String"
+        }]
+    },
+    {
+        "Comment": "Scaling coded in KNX frame is regarded; for sending always encoded with flag Dimensionless",
+        "DPTs": ["229.001"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "Dimensionless"
+        }]
+    },
+    {
+        "Comment": "KNX RGB to OpenHAB HSBType; 242.600 xyY",
+        "DPTs": ["232.600", "242.600"],
+        "Channels": [{
+            "ChannelType": "Color",
+            "Parameter": "hsb",
+            "ItemType": "Color"
+        }]
+    },
+    {
+        "Comment": "Non-Standard, DPT 232.600 with HSB instead of RGB data",
+        "DPTs": ["232.60000"],
+        "Channels": [{
+            "ChannelType": "Color",
+            "Parameter": "hsb",
+            "ItemType": "Color"
+        }]
+    },
+    {
+        "Comment": "Composed DPT 235.001, first element ActiveEnergy (Wh), read only",
+        "DPTs": ["235.001"],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "ActiveEnergy"
+        }]
+    },
+    {
+        "Comment": "First: RGBW, RGB part as HSBType; Second: RGBW, W part separately for Dimmer",
+        "DPTs": ["251.600"],
+        "Channels": [
+            {
+                "ChannelType": "Color",
+                "Parameter": "hsb",
+                "ItemType": "Color"
+            },
+            {
+                "ChannelType": "Color",
+                "Parameter": "position",
+                "ItemType": "Color"
+            }
+        ]
+    },
+    {
+        "Comment": "10.001: Time. Date is set to 1/Jan/1970 + ofs if weekday is given. KNX can represent year 1990..2089.; 11.001: Date only.; 19.001: Date and Time, year can be 1900..2155",
+        "DPTs": ["10.001", "11.001", "19.001"],
+        "Channels": [{
+            "ChannelType": "DateTime",
+            "ItemType": "DateTime"
+        }]
+    },
+    {
+        "Comment": "Time; record must come before General DecimalType / number catch-all",
+        "DPTs": [
+            "7.002", "7.003", "7.004", "7.005", "7.006", "7.007", "8.002", "8.003", "8.004", "8.005", "8.006", "8.007",
+            "12.100", "12.101", "12.102", "13.1200", "13.1201"
+        ],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "Time"
+        }]
+    },
+    {
+        "Comment": "General DecimalType (number)",
+        "DPTs": [
+            "1.022",
+            "2",
+            "5.005", "5.006", "5.010",
+            "7.001", "7.010",
+            "8.001",
+            "9",
+            "12.001",
+            "13",
+            "14",
+            "29.010", "29.011", "29.012"
+        ],
+        "Channels": [{
+            "ChannelType": "Number",
+            "ItemType": "Number",
+            "Dimension": "AccordingDpt"
+        }]
+    }
+]

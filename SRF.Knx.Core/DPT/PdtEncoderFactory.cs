@@ -73,7 +73,6 @@ public class PdtEncoderFactory : IPdtEncoderFactory
         },
         { PropertyDataTypeNumber.PDT_KNX_FLOAT, new PdtEncoder<float>
             {
-                //TODO: this is not a standard float encoding, but the KNX specific 2 byte float encoding. We need to implement the conversion to and from this format.
                 //The KNX 2 byte float format is a custom format that uses 1 bit for the sign, 4 bits for the exponent, and 11 bits for the mantissa. The value is calculated as: (-1)^sign * (1 + mantissa/2048) * 2^(exponent-15)
                 Encoder = (value) => {
                     // Convert the float to the KNX 2 byte float format

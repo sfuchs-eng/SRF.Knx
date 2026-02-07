@@ -26,8 +26,18 @@ public class PropertyDataType
     /// <summary>
     /// Numeric identifier for the property data type (e.g., 1 for PDT-1)
     /// </summary>
-    [XmlAttribute("Number")]
+    [XmlIgnore]
     public PropertyDataTypeNumber Number { get; set; }
+
+    /// <summary>
+    /// XML serialization backing property for Number that handles integer to enum conversion
+    /// </summary>
+    [XmlAttribute("Number")]
+    public int NumberValue
+    {
+        get => (int)Number;
+        set => Number = (PropertyDataTypeNumber)value;
+    }
 
     /// <summary>
     /// Human-readable name for the property data type (e.g., "PDT_CHAR", "PDT_UNSIGNED_INT")

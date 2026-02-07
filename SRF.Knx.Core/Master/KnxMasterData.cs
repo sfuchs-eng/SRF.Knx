@@ -61,7 +61,11 @@ public class DatapointTypesDictionary : IXmlSerializable
 
     public void ReadXml(XmlReader reader)
     {
-        var serializer = new XmlSerializer(typeof(DatapointTypes));
+        var rootAttribute = new XmlRootAttribute("DatapointTypes")
+        {
+            Namespace = "http://knx.org/xml/project/23"
+        };
+        var serializer = new XmlSerializer(typeof(DatapointTypes), rootAttribute);
         
         if (reader.IsEmptyElement)
         {
@@ -104,7 +108,11 @@ public class PropertyDataTypesDictionary : IXmlSerializable
 
     public void ReadXml(XmlReader reader)
     {
-        var serializer = new XmlSerializer(typeof(PropertyDataTypes));
+        var rootAttribute = new XmlRootAttribute("PropertyDataTypes")
+        {
+            Namespace = "http://knx.org/xml/project/23"
+        };
+        var serializer = new XmlSerializer(typeof(PropertyDataTypes), rootAttribute);
         
         if (reader.IsEmptyElement)
         {

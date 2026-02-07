@@ -69,10 +69,10 @@ public class NumericFormat : FormatElement
 public class IntegralNumericFormat : NumericFormat
 {
     [XmlAttribute("MinInclusive")]
-    public int MinInclusive { get; set; } = 0;
+    public long MinInclusive { get; set; } = 0;
 
     [XmlAttribute("MaxInclusive")]
-    public int MaxInclusive { get; set; } = 0;
+    public long MaxInclusive { get; set; } = 0;
 }
 
 public class DecimalNumericFormat : NumericFormat

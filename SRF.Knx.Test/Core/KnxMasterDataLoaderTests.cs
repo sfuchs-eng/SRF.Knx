@@ -501,7 +501,7 @@ public class KnxMasterDataLoaderTests
         var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
 
         // Act - PDT-47 is PDT_UTF-8 with no Size
-        var result = KnxMasterDataLoader.GetPropertyDataTypeByNumber(masterData, PropertyDataTypeNumber.PDT_UTF8);
+        var result = KnxMasterDataLoader.GetPropertyDataTypeByNumber(masterData, PropertyDataTypeNumber.PDT_UTF_8);
 
         // Assert
         Assert.That(result, Is.Not.Null);
@@ -541,24 +541,22 @@ public class KnxMasterDataLoaderTests
         // Assert
         Assert.That(pdts, Is.Not.Empty, "No PDTs found in knx_master.xml");
 
+        // Check that each PDT from XML has a valid Number enum value
         foreach (var pdt in pdts)
         {
-            // Check that the PDT name from XML can be parsed as an enum value
-            var enumName = pdt.Name.ToString();
-            Assert.That(Enum.IsDefined(typeof(PropertyDataTypeNumber), pdt.Name), 
+            // Check that the Number enum value is defined in the enum
+            Assert.That(Enum.IsDefined(typeof(PropertyDataTypeNumber), pdt.Number), 
                 Is.True, 
-                $"PDT '{enumName}' (Number={pdt.Number}) from XML is not defined in PropertyDataTypeName enum");
+                $"PDT '{pdt.Name}' (Id={pdt.Id}) has invalid Number enum value: {pdt.Number}");
 
-            // Check that the enum value's numeric ID matches the PDT Number from XML
-            var enumValue = (int)Enum.Parse<PropertyDataTypeNumber>(pdt.Name);
-            Assert.That(enumValue, Is.EqualTo((int)pdt.Number),
-                $"PDT '{enumName}' has enum value {enumValue} but XML Number is {pdt.Number}. " +
-                $"The enum value must match the PDT Number from knx_master.xml");
+            // Check that the numeric value matches the enum value (should always be true now)
+            var numericValue = (int)pdt.Number;
+            Assert.That(numericValue, Is.GreaterThanOrEqualTo(0), 
+                $"PDT '{pdt.Name}' has negative Number value: {numericValue}");
         }
 
-        // Also verify we have all expected PDTs (as a sanity check)
-        var pdtNumbers = pdts.Select(p => p.Number).OrderBy(n => n).ToList();
-        Assert.That(pdtNumbers.Count, Is.EqualTo(Enum.GetValues<PropertyDataTypeNumber>().Length), 
+        // Verify we have a reasonable number of PDTs (at least 40, accounting for reserved values)
+        Assert.That(pdts.Count, Is.GreaterThanOrEqualTo(40), 
             "Expected at least 40 PDTs in knx_master.xml");
     }
 

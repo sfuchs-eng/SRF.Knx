@@ -243,7 +243,7 @@ public enum PropertyDataTypeNumber
     /// <summary>
     /// Type length: variable, Format: DPT 28.001
     /// </summary>
-    PDT_UTF8 = 47,
+    PDT_UTF_8 = 47,
 
     /// <summary>
     /// Type length: 2 octets, Format: U5U5U6 / DPT 217.001

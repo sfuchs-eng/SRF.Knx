@@ -8,7 +8,9 @@ namespace SRF.Knx.Core.Master;
 /// </summary>
 public static class KnxMasterDataLoader
 {
-    private static readonly XmlSerializer Serializer = new(typeof(KnxMasterData));
+    private static readonly XmlSerializer Serializer = new(
+        typeof(KnxMasterData),
+        new XmlRootAttribute("KNX") { Namespace = "" });
 
     /// <summary>
     /// Loads KNX master data from an XML file
@@ -34,11 +36,13 @@ public static class KnxMasterDataLoader
     /// <exception cref="InvalidOperationException">Thrown when XML deserialization fails</exception>
     public static KnxMasterData LoadFromStream(Stream stream)
     {
-        var result = Serializer.Deserialize(stream) as KnxMasterData;
-        if (result == null)
-            throw new InvalidOperationException("Failed to deserialize KNX master data");
-
-        return result;
+        var settings = new XmlReaderSettings
+        {
+            IgnoreWhitespace = true
+        };
+        
+        using var xmlReader = XmlReader.Create(stream, settings);
+        return LoadFromXmlReader(xmlReader);
     }
 
     /// <summary>
@@ -50,11 +54,13 @@ public static class KnxMasterDataLoader
     public static KnxMasterData LoadFromString(string xmlContent)
     {
         using var stringReader = new StringReader(xmlContent);
-        var result = Serializer.Deserialize(stringReader) as KnxMasterData;
-        if (result == null)
-            throw new InvalidOperationException("Failed to deserialize KNX master data");
-
-        return result;
+        var settings = new XmlReaderSettings
+        {
+            IgnoreWhitespace = true
+        };
+        
+        using var xmlReader = XmlReader.Create(stringReader, settings);
+        return LoadFromXmlReader(xmlReader);
     }
 
     /// <summary>
@@ -65,11 +71,59 @@ public static class KnxMasterDataLoader
     /// <exception cref="InvalidOperationException">Thrown when XML deserialization fails</exception>
     public static KnxMasterData LoadFromXmlReader(XmlReader reader)
     {
-        var result = Serializer.Deserialize(reader) as KnxMasterData;
+        // Create a namespace-ignoring wrapper
+        using var namespaceIgnoringReader = new NamespaceIgnorantXmlReader(reader);
+        var result = Serializer.Deserialize(namespaceIgnoringReader) as KnxMasterData;
         if (result == null)
             throw new InvalidOperationException("Failed to deserialize KNX master data");
 
         return result;
+    }
+    
+    /// <summary>
+    /// XmlReader wrapper that ignores XML namespaces during reading
+    /// </summary>
+    private class NamespaceIgnorantXmlReader : XmlReader
+    {
+        private readonly XmlReader _innerReader;
+        
+        public NamespaceIgnorantXmlReader(XmlReader reader)
+        {
+            _innerReader = reader;
+        }
+        
+        public override bool Read() => _innerReader.Read();
+        
+        // Override namespace-related properties to return empty strings
+        public override string NamespaceURI => string.Empty;
+        public override string Prefix => string.Empty;
+        
+        // Pass through other properties
+        public override string LocalName => _innerReader.LocalName;
+        public override string Name => _innerReader.LocalName;
+        public override XmlNodeType NodeType => _innerReader.NodeType;
+        public override string Value => _innerReader.Value;
+        public override int Depth => _innerReader.Depth;
+        public override string BaseURI => _innerReader.BaseURI;
+        public override bool IsEmptyElement => _innerReader.IsEmptyElement;
+        public override int AttributeCount => _innerReader.AttributeCount;
+        public override bool EOF => _innerReader.EOF;
+        public override ReadState ReadState => _innerReader.ReadState;
+        public override XmlNameTable NameTable => _innerReader.NameTable;
+        
+        public override string GetAttribute(string name) => _innerReader.GetAttribute(name) ?? string.Empty;
+        public override string? GetAttribute(string name, string? namespaceURI) => _innerReader.GetAttribute(name, namespaceURI);
+        public override string GetAttribute(int i) => _innerReader.GetAttribute(i);
+        
+        public override bool MoveToAttribute(string name) => _innerReader.MoveToAttribute(name);
+        public override bool MoveToAttribute(string name, string? ns) => _innerReader.MoveToAttribute(name, ns);
+        public override bool MoveToFirstAttribute() => _innerReader.MoveToFirstAttribute();
+        public override bool MoveToNextAttribute() => _innerReader.MoveToNextAttribute();
+        public override bool MoveToElement() => _innerReader.MoveToElement();
+        
+        public override string? LookupNamespace(string prefix) => string.Empty;
+        public override void ResolveEntity() => _innerReader.ResolveEntity();
+        public override bool ReadAttributeValue() => _innerReader.ReadAttributeValue();
     }
 
     /// <summary>

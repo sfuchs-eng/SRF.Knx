@@ -6,8 +6,9 @@ namespace SRF.Knx.Core.Master;
 
 /// <summary>
 /// Root element for KNX master data XML structure
+/// Tested against file version / ns "http://knx.org/xml/project/23" of ETS 6.x
 /// </summary>
-[XmlRoot("KNX", Namespace = "http://knx.org/xml/project/23")]
+[XmlRoot("KNX", Namespace = "")]
 public class KnxMasterData
 {
     [XmlElement("MasterData")]
@@ -63,7 +64,7 @@ public class DatapointTypesDictionary : IXmlSerializable
     {
         var rootAttribute = new XmlRootAttribute("DatapointTypes")
         {
-            Namespace = "http://knx.org/xml/project/23"
+            Namespace = ""
         };
         var serializer = new XmlSerializer(typeof(DatapointTypes), rootAttribute);
         
@@ -110,7 +111,7 @@ public class PropertyDataTypesDictionary : IXmlSerializable
     {
         var rootAttribute = new XmlRootAttribute("PropertyDataTypes")
         {
-            Namespace = "http://knx.org/xml/project/23"
+            Namespace = ""
         };
         var serializer = new XmlSerializer(typeof(PropertyDataTypes), rootAttribute);
         

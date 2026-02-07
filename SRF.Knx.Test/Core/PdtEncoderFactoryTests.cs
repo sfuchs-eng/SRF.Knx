@@ -253,6 +253,158 @@ public class PdtEncoderFactoryTests
         }
     }
 
+    [Test]
+    public void PdtEncoder_KnxFloat_HandlesMaxValue()
+    {
+        // Arrange
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        // Maximum value: mantissa=2047, exponent=15: 2047 * 0.01 * 2^15 = 670760.96
+        float maxValue = 670760.96f;
+
+        // Act
+        var encoded = encoder!.Encoder(maxValue);
+        var decoded = encoder.Decoder(encoded);
+
+        // Assert
+        Assert.That(decoded, Is.EqualTo(maxValue).Within(maxValue * 0.01f));
+        // Verify the encoded bytes represent max value (0x7FFF for positive max)
+        ushort encodedValue = BitConverter.ToUInt16(encoded.Value, 0);
+        Assert.That(encodedValue, Is.EqualTo(0x7FFF));
+    }
+
+    [Test]
+    public void PdtEncoder_KnxFloat_HandlesMinValue()
+    {
+        // Arrange
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        // Minimum value: mantissa=2047, exponent=15, negative: -670760.96
+        float minValue = -670760.96f;
+
+        // Act
+        var encoded = encoder!.Encoder(minValue);
+        var decoded = encoder.Decoder(encoded);
+
+        // Assert
+        Assert.That(decoded, Is.EqualTo(minValue).Within(Math.Abs(minValue) * 0.01f));
+        // Verify the encoded bytes represent min value (0xFFFF for negative max)
+        ushort encodedValue = BitConverter.ToUInt16(encoded.Value, 0);
+        Assert.That(encodedValue, Is.EqualTo(0xFFFF));
+    }
+
+    [Test]
+    public void PdtEncoder_KnxFloat_ClampsOverflowToMaxValue()
+    {
+        // Arrange
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        float overflowValue = 1000000.0f; // Value exceeds max representable value
+
+        // Act
+        var encoded = encoder!.Encoder(overflowValue);
+        var decoded = encoder.Decoder(encoded);
+
+        // Assert - should clamp to max value
+        Assert.That(decoded, Is.EqualTo(670760.96f).Within(6707.60f));
+        // Verify the encoded bytes represent max value
+        ushort encodedValue = BitConverter.ToUInt16(encoded.Value, 0);
+        Assert.That(encodedValue, Is.EqualTo(0x7FFF));
+    }
+
+    [Test]
+    public void PdtEncoder_KnxFloat_ClampsUnderflowToMinValue()
+    {
+        // Arrange
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        float underflowValue = -1000000.0f; // Value exceeds min representable value
+
+        // Act
+        var encoded = encoder!.Encoder(underflowValue);
+        var decoded = encoder.Decoder(encoded);
+
+        // Assert - should clamp to min value
+        Assert.That(decoded, Is.EqualTo(-670760.96f).Within(6707.60f));
+        // Verify the encoded bytes represent min value
+        ushort encodedValue = BitConverter.ToUInt16(encoded.Value, 0);
+        Assert.That(encodedValue, Is.EqualTo(0xFFFF));
+    }
+
+    [Test]
+    public void PdtEncoder_KnxFloat_HandlesSmallPositiveValue()
+    {
+        // Arrange
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        // Small positive value: mantissa=1, exponent=0: 1 * 0.01 * 2^0 = 0.01
+        float smallValue = 0.01f;
+
+        // Act
+        var encoded = encoder!.Encoder(smallValue);
+        var decoded = encoder.Decoder(encoded);
+
+        // Assert
+        Assert.That(decoded, Is.EqualTo(smallValue).Within(0.001f));
+    }
+
+    [Test]
+    public void PdtEncoder_KnxFloat_HandlesSmallNegativeValue()
+    {
+        // Arrange
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        // Small negative value: -0.01
+        float smallValue = -0.01f;
+
+        // Act
+        var encoded = encoder!.Encoder(smallValue);
+        var decoded = encoder.Decoder(encoded);
+
+        // Assert
+        Assert.That(decoded, Is.EqualTo(smallValue).Within(0.001f));
+    }
+
+    [Test]
+    public void PdtEncoder_KnxFloat_HandlesVerySmallValue()
+    {
+        // Arrange
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        // Very small value that's close to the minimum resolution
+        float verySmallValue = 0.001f;
+
+        // Act
+        var encoded = encoder!.Encoder(verySmallValue);
+        var decoded = encoder.Decoder(encoded);
+
+        // Assert - Due to limited precision, very small values may round to zero or nearest representable
+        Assert.That(decoded, Is.EqualTo(verySmallValue).Within(0.01f));
+    }
+
+    [Test]
+    public void PdtEncoder_KnxFloat_HandlesExponentBoundaries()
+    {
+        // Arrange
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        
+        // Test values at different exponent boundaries
+        float[] testValues = {
+            0.01f,      // Exponent 0 boundary
+            0.02f,      // Exponent 0
+            0.04f,      // Exponent 1 boundary
+            20.47f,     // Near exponent transition
+            40.94f,     // Exponent 1
+            81.88f,     // Exponent 2
+            327.67f,    // Higher exponent
+            10485.76f   // Even higher exponent
+        };
+
+        foreach (var testValue in testValues)
+        {
+            // Act
+            var encoded = encoder!.Encoder(testValue);
+            var decoded = encoder.Decoder(encoded);
+
+            // Assert
+            Assert.That(decoded, Is.EqualTo(testValue).Within(Math.Max(testValue * 0.01f, 0.01f)),
+                $"Failed for value {testValue}");
+        }
+    }
+
     #endregion
 
     #region String Type Encoder/Decoder Tests

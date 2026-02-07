@@ -292,39 +292,27 @@ public class PdtEncoderFactoryTests
     }
 
     [Test]
-    public void PdtEncoder_KnxFloat_ClampsOverflowToMaxValue()
+    public void PdtEncoder_KnxFloat_ThrowsOnOverflow()
     {
         // Arrange
         var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
         float overflowValue = 1000000.0f; // Value exceeds max representable value
 
-        // Act
-        var encoded = encoder!.Encoder(overflowValue);
-        var decoded = encoder.Decoder(encoded);
-
-        // Assert - should clamp to max value
-        Assert.That(decoded, Is.EqualTo(670760.96f).Within(6707.60f));
-        // Verify the encoded bytes represent max value
-        ushort encodedValue = BitConverter.ToUInt16(encoded.Value, 0);
-        Assert.That(encodedValue, Is.EqualTo(0x7FFF));
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() => encoder!.Encoder(overflowValue));
+        Assert.That(ex.Message, Does.Contain("maximum representable value"));
     }
 
     [Test]
-    public void PdtEncoder_KnxFloat_ClampsUnderflowToMinValue()
+    public void PdtEncoder_KnxFloat_ThrowsOnUnderflow()
     {
         // Arrange
         var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
         float underflowValue = -1000000.0f; // Value exceeds min representable value
 
-        // Act
-        var encoded = encoder!.Encoder(underflowValue);
-        var decoded = encoder.Decoder(encoded);
-
-        // Assert - should clamp to min value
-        Assert.That(decoded, Is.EqualTo(-670760.96f).Within(6707.60f));
-        // Verify the encoded bytes represent min value
-        ushort encodedValue = BitConverter.ToUInt16(encoded.Value, 0);
-        Assert.That(encodedValue, Is.EqualTo(0xFFFF));
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() => encoder!.Encoder(underflowValue));
+        Assert.That(ex.Message, Does.Contain("minimum representable value"));
     }
 
     [Test]

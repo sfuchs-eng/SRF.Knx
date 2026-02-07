@@ -87,11 +87,11 @@ public class PdtEncoderFactory : IPdtEncoderFactory
                     // Handle overflow and underflow cases
                     if (value > 670760.96f) // Maximum representable value
                     {
-                        value = 670760.96f;
+                        throw new ArgumentOutOfRangeException(nameof(value), "Value exceeds maximum representable value for KNX 2-byte float");
                     }
                     else if (value < -670760.96f) // Minimum representable value
                     {
-                        value = -670760.96f;
+                        throw new ArgumentOutOfRangeException(nameof(value), "Value is below minimum representable value for KNX 2-byte float");
                     }
 
                     bool isNegative = value < 0;

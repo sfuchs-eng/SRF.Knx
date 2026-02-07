@@ -73,38 +73,66 @@ public class PdtEncoderFactory : IPdtEncoderFactory
         },
         { PropertyDataTypeNumber.PDT_KNX_FLOAT, new PdtEncoder<float>
             {
-                //The KNX 2 byte float format is a custom format that uses 1 bit for the sign, 4 bits for the exponent, and 11 bits for the mantissa. The value is calculated as: (-1)^sign * (1 + mantissa/2048) * 2^(exponent-15)
+                // KNX DPT9 2-byte float format (MEEES MMMMMMMMMM):
+                // Bit 15: Sign (M) - 0=positive, 1=negative
+                // Bits 14-11: Exponent (E) - 4 bits (0-15)
+                // Bits 10-0: Mantissa (m) - 11 bits (0-2047)
+                // Formula: Value = (-1)^M * (m * 0.01) * 2^E
                 Encoder = (value) => {
-                    // Convert the float to the KNX 2 byte float format
-                    uint intValue = BitConverter.ToUInt32(BitConverter.GetBytes(value), 0);
-                    uint sign = (intValue >> 31) & 0x1;
-                    uint exponent = ((intValue >> 23) & 0xFF) - 127 + 15; // Adjust exponent from IEEE 754 to KNX
-                    uint mantissa = (intValue & 0x7FFFFF) >> 11; // Get the top 11 bits of the mantissa
-
-                    if (exponent < 0)
+                    if (value == 0.0f)
                     {
-                        // Underflow, return zero
                         return new GroupValue(new byte[2]);
                     }
-                    else if (exponent > 0xF)
-                    {
-                        // Overflow, return max value
-                        exponent = 0xF;
-                        mantissa = 0x7FF; // Max mantissa
-                    }
 
-                    ushort knxFloat = (ushort)((sign << 15) | (exponent << 11) | mantissa);
+                    bool isNegative = value < 0;
+                    float absValue = Math.Abs(value);
+                    
+                    // Find the exponent: we want m to be in range 1-2047
+                    // absValue = m * 0.01 * 2^E
+                    // m = absValue / (0.01 * 2^E)
+                    int exponent = 0;
+                    float scaledValue = absValue / 0.01f;
+                    
+                    // Adjust exponent to get mantissa in valid range (0-2047)
+                    while (scaledValue > 2047.0f && exponent < 15)
+                    {
+                        scaledValue /= 2.0f;
+                        exponent++;
+                    }
+                    
+                    while (scaledValue < 1.0f && exponent > 0)
+                    {
+                        scaledValue *= 2.0f;
+                        exponent--;
+                    }
+                    
+                    int mantissa = (int)Math.Round(scaledValue);
+                    
+                    // Clamp mantissa to valid range
+                    if (mantissa > 2047)
+                    {
+                        mantissa = 2047;
+                    }
+                    
+                    ushort knxFloat = (ushort)((isNegative ? 1 : 0) << 15 | (exponent << 11) | mantissa);
                     return new GroupValue(BitConverter.GetBytes(knxFloat));
                 },
                 Decoder = groupValue => {
-                     // Convert the KNX 2 byte float format back to a standard float
-                     uint knxFloat = BitConverter.ToUInt16(groupValue.Value, 0);
-                     uint sign = (knxFloat >> 15) & 0x1;
-                     uint exponent = ((knxFloat >> 11) & 0xF) - 15 + 127; // Adjust exponent from KNX to IEEE 754
-                     uint mantissa = (knxFloat & 0x7FF) << 11; // Shift mantissa back to its position
-
-                     uint intValue = (sign << 31) | (exponent << 23) | mantissa;
-                     return BitConverter.ToSingle(BitConverter.GetBytes(intValue), 0);
+                    ushort knxFloat = BitConverter.ToUInt16(groupValue.Value, 0);
+                    
+                    if (knxFloat == 0)
+                    {
+                        return 0.0f;
+                    }
+                    
+                    bool isNegative = (knxFloat & 0x8000) != 0;
+                    int exponent = (knxFloat >> 11) & 0x0F;
+                    int mantissa = knxFloat & 0x07FF;
+                    
+                    // Value = (-1)^M * (m * 0.01) * 2^E
+                    float value = mantissa * 0.01f * (float)Math.Pow(2, exponent);
+                    
+                    return isNegative ? -value : value;
                 }
             }
         },

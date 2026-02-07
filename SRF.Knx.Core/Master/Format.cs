@@ -46,70 +46,63 @@ public class BitFormat : FormatElement
     public string Set { get; set; } = "";
 }
 
+
 /// <summary>
-/// Unsigned integer format element
+/// Base class for numeric format elements (UnsignedInteger, SignedInteger, Float, ...)
 /// </summary>
-public class UnsignedIntegerFormat : FormatElement
+public class NumericFormat : FormatElement
 {
     [XmlAttribute("Width")]
     public int Width { get; set; }
 
-    [XmlAttribute("Unit")]
-    public string Unit { get; set; } = "";
-
     [XmlAttribute("Coefficient")]
-    public double Coefficient { get; set; }
+    public double Coefficient { get; set; } = 1;
 
     [XmlIgnore]
     public bool CoefficientSpecified { get; set; }
-
-    [XmlAttribute("MinInclusive")]
-    public string MinInclusive { get; set; } = "";
-
-    [XmlAttribute("MaxInclusive")]
-    public string MaxInclusive { get; set; } = "";
-}
-
-/// <summary>
-/// Signed integer format element
-/// </summary>
-public class SignedIntegerFormat : FormatElement
-{
-    [XmlAttribute("Width")]
-    public int Width { get; set; }
-
     [XmlAttribute("Unit")]
     public string Unit { get; set; } = "";
-
-    [XmlAttribute("Coefficient")]
-    public double Coefficient { get; set; }
-
     [XmlIgnore]
-    public bool CoefficientSpecified { get; set; }
-
-    [XmlAttribute("MinInclusive")]
-    public string MinInclusive { get; set; } = "";
-
-    [XmlAttribute("MaxInclusive")]
-    public string MaxInclusive { get; set; } = "";
+    public bool UnitSpecified { get; set; }
 }
 
-/// <summary>
-/// Float format element
-/// </summary>
-public class FloatFormat : FormatElement
+public class IntegralNumericFormat : NumericFormat
 {
-    [XmlAttribute("Width")]
-    public int Width { get; set; }
+    [XmlAttribute("MinInclusive")]
+    public int MinInclusive { get; set; } = 0;
 
-    [XmlAttribute("Unit")]
-    public string Unit { get; set; } = "";
+    [XmlAttribute("MaxInclusive")]
+    public int MaxInclusive { get; set; } = 0;
+}
 
+public class DecimalNumericFormat : NumericFormat
+{
     [XmlAttribute("MinValue")]
     public string MinValue { get; set; } = "";
 
     [XmlAttribute("MaxValue")]
     public string MaxValue { get; set; } = "";
+}
+
+/// <summary>
+/// Unsigned integer format element
+/// </summary>
+public class UnsignedIntegerFormat : IntegralNumericFormat
+{
+}
+
+/// <summary>
+/// Signed integer format element
+/// </summary>
+public class SignedIntegerFormat : IntegralNumericFormat
+{
+}
+
+/// <summary>
+/// Float format element
+/// </summary>
+public class FloatFormat : DecimalNumericFormat
+{
 }
 
 /// <summary>
@@ -165,6 +158,9 @@ public class ReservedFormat : FormatElement
 /// </summary>
 public class RefTypeFormat : FormatElement
 {
+    /// <summary>
+    /// Matches the Id of another format element in the same format definition, which is referenced by this element
+    /// </summary>
     [XmlAttribute("RefId")]
     public string RefId { get; set; } = "";
 }

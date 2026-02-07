@@ -21,19 +21,19 @@ public class PropertyDataType
     /// Unique identifier for the property data type (e.g., "PDT-1")
     /// </summary>
     [XmlAttribute("Id")]
-    public string Id { get; set; } = "";
+    public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// Numeric identifier for the property data type (e.g., 1 for PDT-1)
     /// </summary>
     [XmlAttribute("Number")]
-    public int Number { get; set; }
+    public PropertyDataTypeNumber Number { get; set; }
 
     /// <summary>
     /// Human-readable name for the property data type (e.g., "PDT_CHAR", "PDT_UNSIGNED_INT")
     /// </summary>
     [XmlAttribute("Name")]
-    public string Name { get; set; } = "";
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Size of the property data in bytes.

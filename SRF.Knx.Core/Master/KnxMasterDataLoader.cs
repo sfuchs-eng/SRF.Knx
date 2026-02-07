@@ -79,7 +79,7 @@ public static class KnxMasterDataLoader
     /// <returns>List of datapoint types</returns>
     public static List<DatapointType> GetDatapointTypes(KnxMasterData masterData)
     {
-        return masterData.MasterData?.DatapointTypes?.DatapointType ?? [];
+        return masterData.MasterData?.DatapointTypes?.Items.Values.ToList() ?? [];
     }
 
     /// <summary>
@@ -90,7 +90,8 @@ public static class KnxMasterDataLoader
     /// <returns>Datapoint type or null if not found</returns>
     public static DatapointType? GetDatapointTypeByNumber(KnxMasterData masterData, int dptNumber)
     {
-        return GetDatapointTypes(masterData).FirstOrDefault(dpt => dpt.Number == dptNumber);
+        var key = new DPT.DataPointTypeId(dptNumber);
+        return masterData.MasterData?.DatapointTypes?.Items.TryGetValue(key, out var dpt) == true ? dpt : null;
     }
 
     /// <summary>
@@ -101,7 +102,8 @@ public static class KnxMasterDataLoader
     /// <returns>Datapoint type or null if not found</returns>
     public static DatapointType? GetDatapointTypeById(KnxMasterData masterData, string dptId)
     {
-        return GetDatapointTypes(masterData).FirstOrDefault(dpt => dpt.Id == dptId);
+        var key = new DPT.DataPointTypeId(dptId);
+        return masterData.MasterData?.DatapointTypes?.Items.TryGetValue(key, out var dpt) == true ? dpt : null;
     }
 
     /// <summary>
@@ -137,7 +139,7 @@ public static class KnxMasterDataLoader
     /// <returns>List of property data types</returns>
     public static List<PropertyDataType> GetPropertyDataTypes(KnxMasterData masterData)
     {
-        return masterData.MasterData?.PropertyDataTypes?.PropertyDataType ?? [];
+        return masterData.MasterData?.PropertyDataTypes?.Items.Values.ToList() ?? [];
     }
 
     /// <summary>
@@ -146,7 +148,7 @@ public static class KnxMasterDataLoader
     /// <param name="masterData">KNX master data</param>
     /// <param name="pdtNumber">PDT number (e.g., 1 for PDT-1)</param>
     /// <returns>Property data type or null if not found</returns>
-    public static PropertyDataType? GetPropertyDataTypeByNumber(KnxMasterData masterData, int pdtNumber)
+    public static PropertyDataType? GetPropertyDataTypeByNumber(KnxMasterData masterData, PropertyDataTypeNumber pdtNumber)
     {
         return GetPropertyDataTypes(masterData).FirstOrDefault(pdt => pdt.Number == pdtNumber);
     }

@@ -6,10 +6,12 @@ namespace SRF.Knx.Core.DPT;
 
 public class DptFactory(
     Master.KnxMasterData masterData,
+    IPdtEncoderFactory pdtEncoderFactory,
     IDptNumericInfoFactory dptNumericInfoFactory,
     ILogger<DptFactory> logger) : IDptFactory
 {
     private readonly Master.KnxMasterData masterData = masterData;
+    private readonly IPdtEncoderFactory pdtEncoderFactory = pdtEncoderFactory;
     private readonly IDptNumericInfoFactory numericInfoFactory = dptNumericInfoFactory;
     private readonly ILogger<DptFactory> logger = logger;
 
@@ -21,6 +23,7 @@ public class DptFactory(
     public DptBase Get(DataPointTypeId dpstId)
     {
         // Fail if main type only
+        //TODO: get a PDT Encoder nevertheless and create a functioning DPT, but log a warning that this is not a recommended way to use DPTs, as the main number alone does not uniquely identify a DPT subtype and may lead to incorrect behavior if the wrong PDT is assumed.
         if (dpstId.IsMainOnly)
         {
             logger.LogWarning("DPT with main number {Main} and no sub number is not supported. Sub number is required to identify a specific DPT subtype.", dpstId.Main);
@@ -85,4 +88,3 @@ public class DptFactory(
         },
     };
 }
-// PDT Names from KNX Data Types and Data Point Types - ETS6.1.5a2 Master Data:

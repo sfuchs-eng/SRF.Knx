@@ -12,10 +12,12 @@ public abstract class DptBase
 
     public virtual string Format(
         GroupValue groupValue,
-        string language,
-        IFormatProvider formatProvider
+        string? language,
+        IFormatProvider? formatProvider
     )
     {
+        language ??= System.Globalization.CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+        formatProvider ??= System.Globalization.CultureInfo.CurrentCulture;
         var value = ToValue(groupValue);
         //TODO: use the knx master data to format the value according to the language and format provider,
         //including enum values, date and time formats, units, etc.

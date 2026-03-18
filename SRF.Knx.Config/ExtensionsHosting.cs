@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SRF.Knx.Config.Domain;
 
 namespace SRF.Knx.Config;
@@ -7,7 +8,7 @@ public static class ExtensionsHosting
 {
     public static IServiceCollection AddKnxConfig(this IServiceCollection services, string? sectionName = null)
     {
-        services.AddSingleton(TimeProvider.System);
+        services.TryAddSingleton(TimeProvider.System);
         services.AddOptions<KnxConfiguration>().BindConfiguration(sectionName ?? KnxConfiguration.SectionName);
 
         // Domain Config Services to base on, e.g. for running with Falcon SDK and SRF.Network.Knx

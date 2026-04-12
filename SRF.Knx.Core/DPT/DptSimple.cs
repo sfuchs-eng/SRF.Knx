@@ -26,8 +26,9 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
     {
     }
 
-    public DptSimple(PdtEncoder<T> encoder, NumericInfo? numericInfo = null)
+    public DptSimple(DataPointTypeId id, PdtEncoder<T> encoder, NumericInfo? numericInfo = null)
     {
+        Id = id;
         Encoder = encoder.Encoder;
         Decoder = encoder.Decoder;
         NumericInfo = numericInfo;

@@ -77,7 +77,54 @@ public static class KnxMasterDataLoader
         if (result == null)
             throw new InvalidOperationException("Failed to deserialize KNX master data");
 
+        ResolveFormatReferences(result);
         return result;
+    }
+
+    /// <summary>
+    /// Resolves all <see cref="RefTypeFormat"/> placeholder elements in every DPST format by replacing
+    /// them with the actual <see cref="FormatElement"/> objects they reference.
+    /// </summary>
+    /// <remarks>
+    /// The KNX master data XML uses cross-DPST references: a <c>&lt;RefType RefId="DPST-X-Y_F-Z"/&gt;</c>
+    /// element points to a concrete format element (Bit, Float, …) defined in another DPST whose
+    /// <c>Id</c> attribute matches the <c>RefId</c>. After this method returns no
+    /// <see cref="RefTypeFormat"/> instances remain in any DPST's <see cref="Format.Elements"/>.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">Thrown when a <see cref="RefTypeFormat.RefId"/> cannot be resolved.</exception>
+    private static void ResolveFormatReferences(KnxMasterData masterData)
+    {
+        var allDpsts = masterData.MasterData?.DatapointTypes?.Items.Values
+            .SelectMany(dpt => dpt.DatapointSubtypes?.DatapointSubtype ?? [])
+            .ToList() ?? [];
+
+        // Pass 1: build a lookup of all concrete format elements by their Id.
+        var elementById = new Dictionary<string, FormatElement>(StringComparer.Ordinal);
+        foreach (var dpst in allDpsts)
+        {
+            if (dpst.Format is null) continue;
+            foreach (var element in dpst.Format.Elements)
+            {
+                if (element is RefTypeFormat) continue;
+                if (!string.IsNullOrEmpty(element.Id))
+                    elementById[element.Id] = element;
+            }
+        }
+
+        // Pass 2: replace each RefTypeFormat entry with the resolved element.
+        foreach (var dpst in allDpsts)
+        {
+            if (dpst.Format is null) continue;
+            var elements = dpst.Format.Elements;
+            for (var i = 0; i < elements.Count; i++)
+            {
+                if (elements[i] is not RefTypeFormat refType) continue;
+                if (!elementById.TryGetValue(refType.RefId, out var resolved))
+                    throw new InvalidOperationException(
+                        $"Cannot resolve format reference '{refType.RefId}' in DPST '{dpst.Id}'");
+                elements[i] = resolved;
+            }
+        }
     }
     
     /// <summary>

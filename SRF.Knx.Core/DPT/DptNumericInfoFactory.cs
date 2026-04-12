@@ -7,6 +7,13 @@ public class DptNumericInfoFactory(ILogger<DptNumericInfoFactory> logger) : IDpt
 {
     public NumericInfo? GetNumericInfo(DptMetadata dptMeta, out bool isNumeric)
     {
+        if (dptMeta.Dpst is null)
+        {
+            // Main-only DPT (no sub-type): no format information available.
+            isNumeric = false;
+            return null;
+        }
+
         if ( dptMeta.Dpst.Format == null ||
              dptMeta.Dpst.Format.Elements == null )
         {
@@ -42,12 +49,12 @@ public class DptNumericInfoFactory(ILogger<DptNumericInfoFactory> logger) : IDpt
         }
         else if (formatElement is DecimalNumericFormat decimalFormat)
         {
-            if (!double.TryParse(decimalFormat.MaxValue, out maxValue))
+            if (!string.IsNullOrEmpty(decimalFormat.MaxValue) && !double.TryParse(decimalFormat.MaxValue, out maxValue))
             {
                 throw new ArgumentException($"Invalid MaxValue '{decimalFormat.MaxValue}' in format element of DPST {dptMeta.Dpst.Id} in master data. Expected a numeric value.");
             }
 
-            if (!double.TryParse(decimalFormat.MinValue, out minValue))
+            if (!string.IsNullOrEmpty(decimalFormat.MinValue) && !double.TryParse(decimalFormat.MinValue, out minValue))
             {
                 throw new ArgumentException($"Invalid MinValue '{decimalFormat.MinValue}' in format element of DPST {dptMeta.Dpst.Id} in master data. Expected a numeric value.");
             }

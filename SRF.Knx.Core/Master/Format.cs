@@ -32,6 +32,9 @@ public abstract class FormatElement
 
     [XmlAttribute("Name")]
     public string Name { get; set; } = "";
+
+    [XmlIgnore]
+    public virtual Type? PreferredCSharpType { get; set; }
 }
 
 /// <summary>
@@ -44,6 +47,8 @@ public class BitFormat : FormatElement
 
     [XmlAttribute("Set")]
     public string Set { get; set; } = "";
+
+    public override Type PreferredCSharpType => typeof(bool);
 }
 
 
@@ -82,6 +87,8 @@ public class DecimalNumericFormat : NumericFormat
 
     [XmlAttribute("MaxValue")]
     public string MaxValue { get; set; } = "";
+
+    public override Type? PreferredCSharpType => typeof(decimal);
 }
 
 /// <summary>
@@ -89,6 +96,14 @@ public class DecimalNumericFormat : NumericFormat
 /// </summary>
 public class UnsignedIntegerFormat : IntegralNumericFormat
 {
+    public override Type? PreferredCSharpType => Width switch
+    {
+        <= 8 => typeof(byte),
+        <= 16 => typeof(ushort),
+        <= 32 => typeof(uint),
+        <= 64 => typeof(ulong),
+        _ => null
+    };
 }
 
 /// <summary>
@@ -96,6 +111,14 @@ public class UnsignedIntegerFormat : IntegralNumericFormat
 /// </summary>
 public class SignedIntegerFormat : IntegralNumericFormat
 {
+    public override Type? PreferredCSharpType => Width switch
+    {
+        <= 8 => typeof(sbyte),
+        <= 16 => typeof(short),
+        <= 32 => typeof(int),
+        <= 64 => typeof(long),
+        _ => null
+    };
 }
 
 /// <summary>
@@ -103,6 +126,7 @@ public class SignedIntegerFormat : IntegralNumericFormat
 /// </summary>
 public class FloatFormat : DecimalNumericFormat
 {
+    public override Type? PreferredCSharpType => typeof(float);
 }
 
 /// <summary>
@@ -115,6 +139,8 @@ public class StringFormat : FormatElement
 
     [XmlAttribute("Encoding")]
     public string Encoding { get; set; } = "";
+
+    public override Type? PreferredCSharpType => typeof(string);
 }
 
 /// <summary>
@@ -127,6 +153,8 @@ public class EnumerationFormat : FormatElement
 
     [XmlElement("EnumValue")]
     public List<EnumValue> EnumValues { get; set; } = [];
+
+    public override Type? PreferredCSharpType => typeof(int);
 }
 
 /// <summary>

@@ -92,9 +92,6 @@ public static class KnxMasterDataExample
                     case ReservedFormat res:
                         Console.WriteLine($"  Reserved: {res.Width} bits (padding)");
                         break;
-                    case RefTypeFormat rf:
-                        Console.WriteLine($"  RefType: references {rf.RefId}");
-                        break;
                 }
             }
         }

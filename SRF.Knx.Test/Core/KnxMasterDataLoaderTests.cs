@@ -561,4 +561,44 @@ public class KnxMasterDataLoaderTests
     }
 
     #endregion
+
+    #region Format Reference Resolution Tests
+
+    [Test]
+    public void LoadFromFile_FormatReferences_AreResolved()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // DPST-2-1 has: <Bit Id="DPST-2-1_F-1" .../> and <RefType RefId="DPST-1-1_F-1"/>
+        // After resolution the second element must be the concrete BitFormat from DPST-1-1.
+        var dpst2_1 = KnxMasterDataLoader.GetDatapointSubtype(masterData, 2, 1);
+
+        Assert.That(dpst2_1, Is.Not.Null);
+        Assert.That(dpst2_1!.Format, Is.Not.Null);
+        Assert.That(dpst2_1.Format!.Elements.Count, Is.EqualTo(2));
+
+        var resolvedElement = dpst2_1.Format.Elements[1];
+        Assert.That(resolvedElement, Is.InstanceOf<BitFormat>(), "RefType element should have been replaced by the referenced BitFormat");
+        Assert.That(resolvedElement.Id, Is.EqualTo("DPST-1-1_F-1"));
+    }
+
+    [Test]
+    public void LoadFromFile_NoRefTypeFormat_RemainsInAnyDpst()
+    {
+        // Arrange
+        var masterData = KnxMasterDataLoader.LoadFromFile(_knxMasterFilePath);
+
+        // Act: collect all format elements across every DPST
+        var allElements = KnxMasterDataLoader.GetDatapointTypes(masterData)
+            .SelectMany(dpt => dpt.DatapointSubtypes?.DatapointSubtype ?? [])
+            .Where(dpst => dpst.Format is not null)
+            .SelectMany(dpst => dpst.Format!.Elements);
+
+        // Assert: none of the elements should be an unresolved RefTypeFormat
+        Assert.That(allElements, Has.None.InstanceOf<RefTypeFormat>(),
+            "All RefTypeFormat elements should have been resolved during loading");
+    }
+
+    #endregion
 }

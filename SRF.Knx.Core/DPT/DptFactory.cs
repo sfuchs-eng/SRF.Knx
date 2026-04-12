@@ -4,12 +4,12 @@ using SRF.Knx.Core.Master;
 namespace SRF.Knx.Core.DPT;
 
 public class DptFactory(
-    Master.KnxMasterData masterData,
+    IKnxMasterDataProvider masterDataProvider,
     IPdtEncoderFactory pdtEncoderFactory,
     IDptNumericInfoFactory dptNumericInfoFactory,
     ILogger<DptFactory> logger) : IDptFactory
 {
-    private readonly Master.KnxMasterData masterData = masterData;
+    private readonly Master.KnxMasterData masterData = masterDataProvider.GetMasterData();
     private readonly IPdtEncoderFactory pdtEncoderFactory = pdtEncoderFactory;
     private readonly IDptNumericInfoFactory numericInfoFactory = dptNumericInfoFactory;
     private readonly ILogger<DptFactory> logger = logger;
@@ -21,12 +21,9 @@ public class DptFactory(
 
     public DptBase Get(DataPointTypeId dpstId)
     {
-        // Fail if main type only
-        //TODO: get a PDT Encoder nevertheless and create a functioning DPT, but log a warning that this is not a recommended way to use DPTs, as the main number alone does not uniquely identify a DPT subtype and may lead to incorrect behavior if the wrong PDT is assumed.
         if (dpstId.IsMainOnly)
         {
-            logger.LogWarning("DPT with main number {Main} and no sub number is not supported. Sub number is required to identify a specific DPT subtype.", dpstId.Main);
-            throw new ArgumentException($"DPT with main number {dpstId.Main} and no sub number is not supported. Sub number is required to identify a specific DPT subtype.", nameof(dpstId));
+            logger.LogDebug("DPT {Main} requested with main number only (no sub-type). The main type PDT will be used for instantiation. This may lead to incorrect behavior if the assumed PDT does not match the intended sub-type.", dpstId.Main);
         }
 
         var dptMeta = DptMetadata.FromMasterData(dpstId, masterData);
@@ -49,11 +46,15 @@ public class DptFactory(
         var numericInfo = numericInfoFactory.GetNumericInfo(dptMeta, out var isNumeric);
         if (pdtEncoder != null)
         {
-            // use the template type of IPdtEncoder<T> to create a DptSimple<T> instance, where T is the type handled by the PDT encoder.
-            var dptType = typeof(DptSimple<>).MakeGenericType(pdtEncoder.GetType().GetInterfaces()
-                .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(PdtEncoder<>))
+            // PdtEncoder<T> is a class (not an interface), so walk the base type chain to find the generic PdtEncoder<T>.
+            var encoderType = pdtEncoder.GetType();
+            var genericPdtEncoderType = encoderType;
+            while (genericPdtEncoderType != null && !(genericPdtEncoderType.IsGenericType && genericPdtEncoderType.GetGenericTypeDefinition() == typeof(PdtEncoder<>)))
+                genericPdtEncoderType = genericPdtEncoderType.BaseType;
+            var dptType = typeof(DptSimple<>).MakeGenericType(
+                (genericPdtEncoderType ?? throw new InvalidOperationException($"PDT encoder type {encoderType} does not derive from PdtEncoder<T> for DPST {dpstId}"))
                 .GetGenericArguments()[0]);
-            var dpt = (DptBase)(Activator.CreateInstance(dptType, [pdtEncoder, numericInfo!])
+            var dpt = (DptBase)(Activator.CreateInstance(dptType, [dpstId, pdtEncoder, numericInfo!])
                 ?? throw new InvalidOperationException($"Failed to create DPT instance of type {dptType} for DPST {dpstId} using PDT encoder for PDT {dptMeta.Pdt.Name}"));
             return dpt;
         }
@@ -73,7 +74,7 @@ public class DptFactory(
     /// <summary>
     /// Dictionary mapping <see cref="DataPointTypeId"/> to DPT creator functions, creating derivatives of <see cref="DptBase"/>.
     /// First <see cref="DptCreatorsById"/> is searched, if no entry matches, then <see cref="DptCreatorsByPdt"/> is searched using the PDT name from master data.
-    /// This allows for flexible and dynamic DPT instantiation based on master data information.
+    /// This allows for flexible and dynamic DPT instantiation, overriding master data information.
     /// </summary>
     public Dictionary<DPT.DataPointTypeId, DptCreator> DptCreatorsById = new()
     {
@@ -90,8 +91,9 @@ public class DptFactory(
     };
 
     /// <summary>
-    /// Dictionary mapping PDT Names to DPT creator functions. This allows for dynamic instantiation of DPTs based on master data information.
+    /// Dictionary mapping PDT Names to DPT creator functions. This allows for dynamic instantiation of DPTs.
     /// The key is typically the PDT name (e.g., "PDT_UNSIGNED_LONG", etc.) and the value is a function that creates an instance of the corresponding DPT class.
+    /// Allows to override the master data based DPT instantiation with custom DPT creators.
     /// </summary>
     public Dictionary<PropertyDataTypeNumber, DptCreator> DptCreatorsByPdt = new()
     {

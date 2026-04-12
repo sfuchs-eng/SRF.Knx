@@ -21,4 +21,15 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
     public override object ToValue(GroupValue groupValue)
         => Decode(groupValue)
         ?? throw new InvalidOperationException($"got null value for DPT {Id}");
+
+    public DptSimple() : base()
+    {
+    }
+
+    public DptSimple(PdtEncoder<T> encoder, NumericInfo? numericInfo = null)
+    {
+        Encoder = encoder.Encoder;
+        Decoder = encoder.Decoder;
+        NumericInfo = numericInfo;
+    }
 }

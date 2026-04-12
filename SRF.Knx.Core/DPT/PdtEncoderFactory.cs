@@ -2,6 +2,12 @@ using SRF.Knx.Core.Master;
 
 namespace SRF.Knx.Core.DPT;
 
+/// <summary>
+/// Provides <see cref="PdtEncoder"/> instances for given property data types (PDTs).
+/// It uses a dictionary to map PDT numbers to their corresponding encoder methods.
+/// Encoder methods are implemented for common PDTs, and can be extended to support additional PDTs as needed
+/// by registration in <see cref="PdtEncodersByNumber"/> or by replacing existing entries.
+/// </summary>
 public class PdtEncoderFactory : IPdtEncoderFactory
 {
     public PdtEncoder GetPdtEncoder(PropertyDataType pdt)
@@ -109,13 +115,13 @@ public class PdtEncoderFactory : IPdtEncoderFactory
                         scaledValue /= 2.0f;
                         exponent++;
                     }
-                    
+
                     while (scaledValue < 1.0f && exponent > 0)
                     {
                         scaledValue *= 2.0f;
                         exponent--;
                     }
-                    
+
                     int mantissa = (int)Math.Round(scaledValue);
                     
                     // Clamp mantissa to valid range
@@ -123,25 +129,25 @@ public class PdtEncoderFactory : IPdtEncoderFactory
                     {
                         mantissa = 2047;
                     }
-                    
+
                     ushort knxFloat = (ushort)((isNegative ? 1 : 0) << 15 | (exponent << 11) | mantissa);
                     return new GroupValue(BitConverter.GetBytes(knxFloat));
                 },
                 Decoder = groupValue => {
                     ushort knxFloat = BitConverter.ToUInt16(groupValue.Value, 0);
-                    
+
                     if (knxFloat == 0)
                     {
                         return 0.0f;
                     }
-                    
+
                     bool isNegative = (knxFloat & 0x8000) != 0;
                     int exponent = (knxFloat >> 11) & 0x0F;
                     int mantissa = knxFloat & 0x07FF;
                     
                     // Value = (-1)^S * (M * 0.01) * 2^E
                     float value = mantissa * 0.01f * (float)Math.Pow(2, exponent);
-                    
+
                     return isNegative ? -value : value;
                 }
             }

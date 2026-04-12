@@ -1,7 +1,12 @@
-using System;
-
 namespace SRF.Knx.Core.DPT;
 
+/// <summary>
+/// Base class for all DPT types.
+/// It provides methods to convert between the raw group value and the typed value,
+/// as well as a method to format the value for display purposes.
+/// 
+/// The DPT factory will return an instance of the appropriate DPT type based on the main and sub number of the DPT.
+/// </summary>
 public abstract class DptBase
 {
     public required DataPointTypeId Id { get; init; }

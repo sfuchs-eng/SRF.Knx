@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using SRF.Knx.Core.DPT;
 using SRF.Knx.Core.Master;
 
 namespace SRF.Knx.Core.DPT;
@@ -44,6 +43,21 @@ public class DptFactory(
             return creatorInfoByPdt.Creator(dptMeta, numericInfoFactory);
         }
 
+        // use the PDT encoder factory as fall back if no specific DPT creator is found, but a PDT encoder exists for the PDT specified in master data.
+        // This allows for dynamic DPT creation based on available PDT encoders, even if no specific DPT creator is registered for the DPST ID or PDT.
+        var pdtEncoder = pdtEncoderFactory.GetPdtEncoder(dptMeta.Pdt);
+        var numericInfo = numericInfoFactory.GetNumericInfo(dptMeta, out var isNumeric);
+        if (pdtEncoder != null)
+        {
+            // use the template type of IPdtEncoder<T> to create a DptSimple<T> instance, where T is the type handled by the PDT encoder.
+            var dptType = typeof(DptSimple<>).MakeGenericType(pdtEncoder.GetType().GetInterfaces()
+                .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(PdtEncoder<>))
+                .GetGenericArguments()[0]);
+            var dpt = (DptBase)(Activator.CreateInstance(dptType, [pdtEncoder, numericInfo!])
+                ?? throw new InvalidOperationException($"Failed to create DPT instance of type {dptType} for DPST {dpstId} using PDT encoder for PDT {dptMeta.Pdt.Name}"));
+            return dpt;
+        }
+
         logger.LogWarning("No DPT creator found for DPT main {Main} subtype {Sub} with PDT {PdtName}", dpstId.Main, dpstId.Sub, dptMeta.Pdt.Name);
         throw new NotSupportedException($"No DPT creator found for DPT main {dpstId.Main} subtype {dpstId.Sub} with PDT {dptMeta.Pdt.Name}");
     }
@@ -58,10 +72,12 @@ public class DptFactory(
 
     /// <summary>
     /// Dictionary mapping <see cref="DataPointTypeId"/> to DPT creator functions, creating derivatives of <see cref="DptBase"/>.
-    /// First <see cref="DptCreatorsById"/> is searched, if no entry matches, then <see cref="DptCreatorsByPdt"/> is searched using the PDT name from master data. This allows for flexible and dynamic DPT instantiation based on master data information.
+    /// First <see cref="DptCreatorsById"/> is searched, if no entry matches, then <see cref="DptCreatorsByPdt"/> is searched using the PDT name from master data.
+    /// This allows for flexible and dynamic DPT instantiation based on master data information.
     /// </summary>
     public Dictionary<DPT.DataPointTypeId, DptCreator> DptCreatorsById = new()
     {
+        /*
         { new DataPointTypeId("1.001"), new DptCreator((dptm,nif) => new DptSimple<UInt32>()
             {
                 Id = dptm.Id,
@@ -70,6 +86,7 @@ public class DptFactory(
                 NumericInfo = nif.GetNumericInfo(dptm, out var isNumeric)
             })
         },
+        */
     };
 
     /// <summary>
@@ -78,6 +95,7 @@ public class DptFactory(
     /// </summary>
     public Dictionary<PropertyDataTypeNumber, DptCreator> DptCreatorsByPdt = new()
     {
+        /*
         { PropertyDataTypeNumber.PDT_UNSIGNED_LONG, new DptCreator((dptm,nif) => new DptSimple<UInt32>()
             {
                 Id = dptm.Id,
@@ -86,5 +104,6 @@ public class DptFactory(
                 NumericInfo = nif.GetNumericInfo(dptm, out var isNumeric)
             })
         },
+        */
     };
 }

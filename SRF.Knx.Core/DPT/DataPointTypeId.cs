@@ -7,7 +7,6 @@ namespace SRF.Knx.Core.DPT;
 
 /// <summary>
 /// KNX Data Point Type
-///TODO: support "vendor specific" DPTs, like e.g. 232.60000 (MDT HSB instead of RGBW 232.600) or 251.60600 (single frame instead of separate with 251.600) needed for OpenHAB
 /// </summary>
 public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<DataPointTypeId>, IXmlSerializable
 {

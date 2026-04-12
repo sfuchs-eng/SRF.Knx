@@ -2,6 +2,10 @@ using SRF.Knx.Core.Master;
 
 namespace SRF.Knx.Core.DPT;
 
+/// <summary>
+/// Represents metadata information for a DPT, including its ID, DPST information, and the associated PDT from the KNX masterdata file.
+/// This metadata is used for DPT instantiation and encoding/decoding based on master data definitions.
+/// </summary>
 public class DptMetadata(
     DataPointTypeId Id,
     DatapointType Dpt,
@@ -23,7 +27,7 @@ public class DptMetadata(
         var pdt = masterData.MasterData?.PropertyDataTypes?.ItemsByStringId.TryGetValue(dpst?.PDT ?? "", out var pdtValue) == true ? pdtValue
             : throw new ArgumentOutOfRangeException(nameof(id), $"PDT with ID {dpst?.PDT} not found in master data for DPT main {id.Main} subtype {id.Sub}");
 
-        if ( dpst is null )
+        if (dpst is null)
         {
             throw new ArgumentException($"Invalid DPT metadata for DPT main {id.Main} subtype {id.Sub}. DPST or PDT information is missing in master data.");
         }

@@ -14,6 +14,7 @@ public class PropertyDataTypes
 /// <summary>
 /// Represents a KNX Property Data Type (PDT) which defines the data type for device properties.
 /// Property Data Types are used for interface object properties in KNX devices.
+/// For actual encoding/decoding of property values, see <see cref="PdtEncoder"/> and <see cref="IPdtEncoderFactory"/>.
 /// </summary>
 public class PropertyDataType
 {

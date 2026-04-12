@@ -1,5 +1,8 @@
 namespace SRF.Knx.Core.DPT;
 
+/// <summary>
+/// Converts between a typed value and a raw group value (byte[] <see cref="GroupValue.Value"/>) for a given property data type (PDT).
+/// </summary>
 public class PdtEncoder
 {
     public virtual Type Type { get; set; } = typeof(object);

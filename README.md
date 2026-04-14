@@ -2,6 +2,8 @@
 
 A .NET library for working with KNX building automation systems.
 
+This library and its components are neither affiliated with nor endorsed by the KNX Association. It is an independent, minimalistic implementation based on publicly available information about the KNX protocol and related technologies.
+
 ## Overview
 
 SRF.Knx provides a set of libraries for integrating with KNX systems, including configuration management, OpenHAB integration, and core KNX protocol support.

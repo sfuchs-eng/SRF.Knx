@@ -37,6 +37,14 @@ public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<Da
         Sub = sub;
     }
 
+    public DataPointTypeId(int main) : this(main, 0)
+    {
+    }
+
+    public DataPointTypeId(DataPointTypeId other) : this(other.Main, other.Sub)
+    {
+    }
+
     public bool IsValidMainType { get => Main != 0; }
 
     public bool IsValidType { get => IsValidMainType && Sub != 0; }

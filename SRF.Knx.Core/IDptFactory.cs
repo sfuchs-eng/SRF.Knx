@@ -8,8 +8,10 @@ namespace SRF.Knx.Core;
 /// and uses the PDT encoder factory to get the appropriate PDT encoder for the DPT type.
 /// The DPT factory also uses the DPT numeric info factory to get the numeric information for
 /// the DPT type, such as the range, resolution, unit, etc., which can be used by the DPT types to validate and format the values.
+/// DPT objects created by the factory should be cached and reused by the application to avoid unnecessary object creation and to improve performance.
 /// </summary>
 public interface IDptFactory
 {
     DptBase Get(int main, int sub);
+    DptBase Get(DataPointTypeId dpstId);
 }

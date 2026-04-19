@@ -3,6 +3,14 @@ using SRF.Knx.Core.Master;
 
 namespace SRF.Knx.Core.DPT;
 
+/// <summary>
+/// Factory class for creating DPT (Data Point Type) instances.
+/// The factory uses master data to determine the appropriate DPT type to instantiate based on the provided DataPointTypeId (main and sub type).
+/// The factory also uses the PDT encoder factory to get the appropriate PDT encoder for the DPT type, and the DPT numeric info factory to get the numeric information for the DPT type.
+/// Two dictionaries, <see cref="DptCreatorsById"/> and <see cref="DptCreatorsByPdt"/>, are used to override the default DPT instantiation logic based on DPST ID or PDT name, allowing for flexible and dynamic DPT creation.
+/// If no specific creator is found, the factory falls back to using the PDT encoder factory to create a generic DPT instance based on the available PDT encoder.
+/// </summary>
+/// <typeparam name="DptFactory"></typeparam>
 public class DptFactory(
     IKnxMasterDataProvider masterDataProvider,
     IPdtEncoderFactory pdtEncoderFactory,
@@ -97,7 +105,7 @@ public class DptFactory(
     /// </summary>
     public Dictionary<PropertyDataTypeNumber, DptCreator> DptCreatorsByPdt = new()
     {
-        /*
+        /* Example:
         { PropertyDataTypeNumber.PDT_UNSIGNED_LONG, new DptCreator((dptm,nif) => new DptSimple<UInt32>()
             {
                 Id = dptm.Id,

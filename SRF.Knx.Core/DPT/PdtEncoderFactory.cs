@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using SRF.Knx.Core.Master;
 
 namespace SRF.Knx.Core.DPT;
@@ -67,88 +68,66 @@ public class PdtEncoderFactory : IPdtEncoderFactory
         },
         { PropertyDataTypeNumber.PDT_INT, new PdtEncoder<short>
             {
-                Encoder = value => new GroupValue(BitConverter.GetBytes(value)),
-                Decoder = groupValue => BitConverter.ToInt16(groupValue.Value, 0)
+                Encoder = value => { var b = new byte[2]; BinaryPrimitives.WriteInt16BigEndian(b, value); return new GroupValue(b); },
+                Decoder = groupValue => BinaryPrimitives.ReadInt16BigEndian(groupValue.Value)
             }
         },
         { PropertyDataTypeNumber.PDT_UNSIGNED_INT, new PdtEncoder<ushort>
             {
-                Encoder = value => new GroupValue(BitConverter.GetBytes(value)),
-                Decoder = groupValue => BitConverter.ToUInt16(groupValue.Value, 0)
+                Encoder = value => { var b = new byte[2]; BinaryPrimitives.WriteUInt16BigEndian(b, value); return new GroupValue(b); },
+                Decoder = groupValue => BinaryPrimitives.ReadUInt16BigEndian(groupValue.Value)
             }
         },
         { PropertyDataTypeNumber.PDT_KNX_FLOAT, new PdtEncoder<float>
             {
-                // KNX DPT9 2-byte float format (SEEEEMMMMMMMMMMM):
-                // Bit 15: Sign (S) - 0=positive, 1=negative
-                // Bits 14-11: Exponent (E) - 4 bits (0-15)
-                // Bits 10-0: Mantissa (M) - 11 bits (0-2047)
-                // Formula: Value = (-1)^S * (M * 0.01) * 2^E
+                // KNX DPT 9 2-byte float format, big-endian on the wire: SEEEEMMMMMMMMMMM
+                // Bit 15: Sign (S)
+                // Bits 14-11: Exponent (E, 4 bits, 0-15)
+                // Bits 10-0: Two's-complement mantissa bits (mBits, 11 bits)
+                //   mBits encodes a signed value: M = S==1 ? mBits - 2048 : mBits
+                // Value = M * 0.01 * 2^E
                 Encoder = (value) => {
                     if (value == 0.0f)
-                    {
                         return new GroupValue(new byte[2]);
-                    }
 
-                    // Handle overflow and underflow cases
-                    if (value > 670760.96f) // Maximum representable value
-                    {
+                    // True representable range: M in [-2048, 2047], E in [0, 15]
+                    if (value > 670760.96f)
                         throw new ArgumentOutOfRangeException(nameof(value), "Value exceeds maximum representable value for KNX 2-byte float");
-                    }
-                    else if (value < -670760.96f) // Minimum representable value
-                    {
+                    if (value < -671088.64f)
                         throw new ArgumentOutOfRangeException(nameof(value), "Value is below minimum representable value for KNX 2-byte float");
-                    }
 
-                    bool isNegative = value < 0;
-                    float absValue = Math.Abs(value);
-                    
-                    // Find the exponent: we want M to be in range 1-2047
-                    // absValue = M * 0.01 * 2^E
-                    // M = absValue / (0.01 * 2^E)
+                    // Scale signed value into mantissa range [-2048, 2047]
                     int exponent = 0;
-                    float scaledValue = absValue / 0.01f;
-                    
-                    // Adjust exponent to get mantissa in valid range (0-2047)
-                    while (scaledValue > 2047.0f && exponent < 15)
+                    float scaledValue = value / 0.01f;
+
+                    while ((scaledValue > 2047f || scaledValue < -2048f) && exponent < 15)
                     {
                         scaledValue /= 2.0f;
                         exponent++;
                     }
 
-                    while (scaledValue < 1.0f && exponent > 0)
-                    {
-                        scaledValue *= 2.0f;
-                        exponent--;
-                    }
+                    int m = Math.Clamp((int)Math.Round(scaledValue), -2048, 2047);
+                    int s = m < 0 ? 1 : 0;
+                    int mBits = m < 0 ? m + 2048 : m;
 
-                    int mantissa = (int)Math.Round(scaledValue);
-                    
-                    // Clamp mantissa to valid range
-                    if (mantissa > 2047)
-                    {
-                        mantissa = 2047;
-                    }
-
-                    ushort knxFloat = (ushort)((isNegative ? 1 : 0) << 15 | (exponent << 11) | mantissa);
-                    return new GroupValue(BitConverter.GetBytes(knxFloat));
+                    ushort knxFloat = (ushort)(s << 15 | exponent << 11 | mBits);
+                    // Emit big-endian (KNX wire order)
+                    return new GroupValue([(byte)(knxFloat >> 8), (byte)(knxFloat & 0xFF)]);
                 },
                 Decoder = groupValue => {
-                    ushort knxFloat = BitConverter.ToUInt16(groupValue.Value, 0);
+                    // Read big-endian
+                    ushort knxFloat = (ushort)((groupValue.Value[0] << 8) | groupValue.Value[1]);
 
                     if (knxFloat == 0)
-                    {
                         return 0.0f;
-                    }
 
-                    bool isNegative = (knxFloat & 0x8000) != 0;
+                    int s = (knxFloat >> 15) & 0x01;
                     int exponent = (knxFloat >> 11) & 0x0F;
-                    int mantissa = knxFloat & 0x07FF;
-                    
-                    // Value = (-1)^S * (M * 0.01) * 2^E
-                    float value = mantissa * 0.01f * (float)Math.Pow(2, exponent);
+                    int mBits = knxFloat & 0x07FF;
+                    // Two's-complement: when S=1 the 11-bit field represents a negative number
+                    int m = s == 1 ? mBits - 2048 : mBits;
 
-                    return isNegative ? -value : value;
+                    return m * 0.01f * (float)Math.Pow(2, exponent);
                 }
             }
         },
@@ -166,26 +145,26 @@ public class PdtEncoderFactory : IPdtEncoderFactory
         },
         { PropertyDataTypeNumber.PDT_LONG, new PdtEncoder<int>
             {
-                Encoder = value => new GroupValue(BitConverter.GetBytes(value)),
-                Decoder = groupValue => BitConverter.ToInt32(groupValue.Value, 0)
+                Encoder = value => { var b = new byte[4]; BinaryPrimitives.WriteInt32BigEndian(b, value); return new GroupValue(b); },
+                Decoder = groupValue => BinaryPrimitives.ReadInt32BigEndian(groupValue.Value)
             }
         },
         { PropertyDataTypeNumber.PDT_UNSIGNED_LONG, new PdtEncoder<uint>
             {
-                Encoder = value => new GroupValue(BitConverter.GetBytes(value)),
-                Decoder = groupValue => BitConverter.ToUInt32(groupValue.Value, 0)
+                Encoder = value => { var b = new byte[4]; BinaryPrimitives.WriteUInt32BigEndian(b, value); return new GroupValue(b); },
+                Decoder = groupValue => BinaryPrimitives.ReadUInt32BigEndian(groupValue.Value)
             }
         },
         { PropertyDataTypeNumber.PDT_FLOAT, new PdtEncoder<float>
             {
-                Encoder = value => new GroupValue(BitConverter.GetBytes(value)),
-                Decoder = groupValue => BitConverter.ToSingle(groupValue.Value, 0)
+                Encoder = value => { var b = new byte[4]; BinaryPrimitives.WriteSingleBigEndian(b, value); return new GroupValue(b); },
+                Decoder = groupValue => BinaryPrimitives.ReadSingleBigEndian(groupValue.Value)
             }
         },
         { PropertyDataTypeNumber.PDT_DOUBLE, new PdtEncoder<double>
             {
-                Encoder = value => new GroupValue(BitConverter.GetBytes(value)),
-                Decoder = groupValue => BitConverter.ToDouble(groupValue.Value, 0)
+                Encoder = value => { var b = new byte[8]; BinaryPrimitives.WriteDoubleBigEndian(b, value); return new GroupValue(b); },
+                Decoder = groupValue => BinaryPrimitives.ReadDoubleBigEndian(groupValue.Value)
             }
         },
         { PropertyDataTypeNumber.PDT_CHAR_BLOCK, new PdtEncoder<string>
@@ -430,8 +409,8 @@ public class PdtEncoderFactory : IPdtEncoderFactory
         },
         { PropertyDataTypeNumber.PDT_BITSET16, new PdtEncoder<ushort>
             {
-                Encoder = value => new GroupValue(BitConverter.GetBytes(value)),
-                Decoder = groupValue => BitConverter.ToUInt16(groupValue.Value, 0)
+                Encoder = value => { var b = new byte[2]; BinaryPrimitives.WriteUInt16BigEndian(b, value); return new GroupValue(b); },
+                Decoder = groupValue => BinaryPrimitives.ReadUInt16BigEndian(groupValue.Value)
             }
         },
         { PropertyDataTypeNumber.PDT_ENUM8, new PdtEncoder<byte>

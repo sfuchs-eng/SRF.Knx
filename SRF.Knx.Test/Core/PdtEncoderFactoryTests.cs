@@ -267,8 +267,8 @@ public class PdtEncoderFactoryTests
 
         // Assert
         Assert.That(decoded, Is.EqualTo(maxValue).Within(maxValue * 0.01f));
-        // Verify the encoded bytes represent max value (0x7FFF for positive max)
-        ushort encodedValue = BitConverter.ToUInt16(encoded.Value, 0);
+        // Verify the encoded bytes represent max value (0x7FFF for positive max, big-endian)
+        ushort encodedValue = (ushort)((encoded.Value[0] << 8) | encoded.Value[1]);
         Assert.That(encodedValue, Is.EqualTo(0x7FFF));
     }
 
@@ -277,8 +277,9 @@ public class PdtEncoderFactoryTests
     {
         // Arrange
         var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
-        // Minimum value: mantissa=2047, exponent=15, negative: -670760.96
-        float minValue = -670760.96f;
+        // True minimum: M=-2048, E=15: -2048 * 0.01 * 2^15 = -671088.64
+        // Encoded: S=1, E=15, mBits=0 (two's complement) -> 0xF800
+        float minValue = -671088.64f;
 
         // Act
         var encoded = encoder!.Encoder(minValue);
@@ -286,9 +287,9 @@ public class PdtEncoderFactoryTests
 
         // Assert
         Assert.That(decoded, Is.EqualTo(minValue).Within(Math.Abs(minValue) * 0.01f));
-        // Verify the encoded bytes represent min value (0xFFFF for negative max)
-        ushort encodedValue = BitConverter.ToUInt16(encoded.Value, 0);
-        Assert.That(encodedValue, Is.EqualTo(0xFFFF));
+        // Verify the encoded bytes represent min value (0xF800, big-endian)
+        ushort encodedValue = (ushort)((encoded.Value[0] << 8) | encoded.Value[1]);
+        Assert.That(encodedValue, Is.EqualTo(0xF800));
     }
 
     [Test]
@@ -391,6 +392,49 @@ public class PdtEncoderFactoryTests
             Assert.That(decoded, Is.EqualTo(testValue).Within(Math.Max(testValue * 0.01f, 0.01f)),
                 $"Failed for value {testValue}");
         }
+    }
+
+    /// <summary>
+    /// Wireshark capture: 8/6/1 GroupValueWrite, data bytes 0x84 0x12.
+    /// KNX DPT 9 big-endian 0x8412: S=1, E=0, mBits=1042 → M=1042-2048=-1006 → −10.06°
+    /// </summary>
+    [Test]
+    public void PdtEncoder_KnxFloat_DecodesWireBytes_NegativeValue()
+    {
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        var groupValue = new GroupValue([0x84, 0x12]);
+
+        var decoded = encoder!.Decoder(groupValue);
+
+        Assert.That(decoded, Is.EqualTo(-10.06f).Within(0.01f));
+    }
+
+    /// <summary>
+    /// Wireshark capture: 8/6/1 GroupValueWrite, data bytes 0x83 0x3D.
+    /// KNX DPT 9 big-endian 0x833D: S=1, E=0, mBits=829 → M=829-2048=-1219 → −12.19°
+    /// </summary>
+    [Test]
+    public void PdtEncoder_KnxFloat_DecodesWireBytes_NegativeValue2()
+    {
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+        var groupValue = new GroupValue([0x83, 0x3D]);
+
+        var decoded = encoder!.Decoder(groupValue);
+
+        Assert.That(decoded, Is.EqualTo(-12.19f).Within(0.01f));
+    }
+
+    /// <summary>
+    /// Encodes −10.06 and expects the KNX big-endian wire bytes 0x84 0x12.
+    /// </summary>
+    [Test]
+    public void PdtEncoder_KnxFloat_EncodesKnownNegativeValue()
+    {
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_KNX_FLOAT] as PdtEncoder<float>;
+
+        var encoded = encoder!.Encoder(-10.06f);
+
+        Assert.That(encoded.Value, Is.EqualTo(new byte[] { 0x84, 0x12 }));
     }
 
     #endregion

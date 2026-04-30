@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using SRF.Knx.Core.DPT;
 
@@ -13,10 +14,9 @@ public static class ExtensionsHosting
     /// </summary>
     public static IServiceCollection AddKnxCore(this IServiceCollection services)
     {
-        // Register the DPT factory and its dependencies as singletons
-        services.AddSingleton<IPdtEncoderFactory, PdtEncoderFactory>();
-        services.AddSingleton<IDptNumericInfoFactory, DptNumericInfoFactory>();
-        services.AddSingleton<IDptFactory, DptMemoryCache>(sp =>
+        services.TryAddSingleton<IPdtEncoderFactory, PdtEncoderFactory>();
+        services.TryAddSingleton<IDptNumericInfoFactory, DptNumericInfoFactory>();
+        services.TryAddSingleton<IDptFactory>(sp =>
             new DptMemoryCache(
                 ActivatorUtilities.CreateInstance<DptFactory>(sp)
             )

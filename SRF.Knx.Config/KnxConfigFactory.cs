@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using HomeCompanion.Knx.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -100,13 +99,11 @@ public class KnxConfigFactory(
         return result;
     }
 
-    /// <summary>
-    /// Serializes the auto-gen mapping to <see cref="KnxConfiguration.HomeCompanionAutoGenFile"/>.
-    /// </summary>
-    public void SaveHomeCompanionAutoGen(Dictionary<string, HomeCompanionAutoGenEntry> entries)
+    /// <inheritdoc/>
+    public string GenerateHomeCompanionCode(DomainConfiguration config)
     {
-        var json = HomeCompanionAutoGenSerializer.Serialize(entries);
-        File.WriteAllText(options.Value.HomeCompanionAutoGenFile, json, System.Text.Encoding.UTF8);
+        var entries = GenerateHomeCompanionAutoGen(config);
+        return KnxValuesCodeGenerator.Generate(entries);
     }
 
     public DomainConfiguration CreateDomainConfigFromEtsExport()

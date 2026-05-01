@@ -19,11 +19,11 @@ public class KnxConfiguration
     public string KnxDomainConfigFile { get; set; } = "KnxDomainConfig.json";
 
     /// <summary>
-    /// Path to the generated <c>HomeCompanionKnxAutoGen.json</c> file consumed by the
-    /// <c>HomeCompanion.Knx.CodeGen</c> source generator to produce correctly named
-    /// <c>KnxValues</c> properties.
+    /// Path where <c>srf-network-cli kc --home-companion-code-gen</c> writes the generated
+    /// <c>KnxValues.generated.cs</c> source file. Set this in your local <c>SRF.Network.json</c>
+    /// to point at the <c>HomeCompanion.Knx/</c> project folder on your machine.
     /// </summary>
-    public string HomeCompanionAutoGenFile { get; set; } = "HomeCompanionKnxAutoGen.json";
+    public string HomeCompanionCodeGenFile { get; set; } = "KnxValues.generated.cs";
 
     public string KnxMasterFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "knx-master");
 

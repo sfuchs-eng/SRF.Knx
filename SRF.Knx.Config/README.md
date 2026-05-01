@@ -36,6 +36,7 @@ Example file SRF.Network.json in the AppData directory:
         "EtsGAExportFile": "/home/sfuchs/src/knx-master/XProj_GroupAddressesETS.xml",
         "KnxMasterFolder": "/home/sfuchs/src/knx-master/project-20/",
         "KnxDomainConfigFile": "/home/sfuchs/src/knx-master/XProj_KnxDomainConfig.json",
+        "HomeCompanionCodeGenFile": "/home/sfuchs/src/HomeCompanion/HomeCompanion.Knx/KnxValues.generated.cs",
         "OpenHab": {
             "BaseConfigFile": "/home/sfuchs/src/knx-master/XProj_OpenHabKnxConfig.json",
             "TemplatesFolder": "/home/sfuchs/src/knx-master/OpenHabTemplates",
@@ -67,8 +68,22 @@ Run the updater and just check diffs in your config git repo for proper change p
 
 1. ETS export: ETS GA export, xml file version 5
 1. Domain meta config: -u
-1. OH meta config: -om
-1. OH config: -o
+1. OpenHAB meta config: -om
+1. OpenHAB config: -o
+
+### Generating KnxValues.generated.cs for HomeCompanion
+
+`KnxValues.generated.cs` is a git-ignored partial class file that gives the HomeCompanion project typed, IDE-visible `ValueBase<T>` properties for every KNX group address. Regenerate it whenever the KNX domain configuration changes.
+
+Prerequisites:
+
+- `HomeCompanionCodeGenFile` is set in your local `SRF.Network.json` to the absolute path of `HomeCompanion.Knx/KnxValues.generated.cs` in your HomeCompanion checkout.
+- The domain configuration (`KnxDomainConfigFile`) is up to date.
+
+For updating after changes in the ETS export, the recommended procedure is:
+
+1. Update the domain configuration from the ETS export file, using `srf-network-cli kc -u` (or `--update-domain-config`).
+2. Generate the new `KnxValues.generated.cs` file, using `srf-network-cli kc -hc` (or `--home-companion-code-gen`).
 
 ### Mechanism
 
@@ -80,4 +95,4 @@ Applied procedure, for each Group Address newly taken from ETS into domain and O
 1. Update the OpenHAB meta configuration
     1. Use [OpenHabDptMappings.json](./Resources/OpenHabDptMappings.json) to determine channel type, parameter and UoM dimension
     1. Use [OpenHabItemTemplates.json](./Resources/OpenHabItemTemplates.json) to override config if the group address ETS config matches
-1. Produce the desired output, e.g. OpenHAB thing and item config files.
+1. Produce the desired output, e.g. OpenHAB thing and item config files, HomeCompanion `KnxValues.generated.cs`.

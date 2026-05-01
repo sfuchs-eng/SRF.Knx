@@ -92,6 +92,8 @@ public class KnxConfigFactory(
             result[address3L] = new HomeCompanionAutoGenEntry
             {
                 PropertyName = name,
+                Label = string.IsNullOrWhiteSpace(gac.Label) ? null : gac.Label,
+                Description = string.IsNullOrWhiteSpace(gac.Description) ? null : gac.Description,
                 Dpt = string.IsNullOrEmpty(gac.DPTs) ? null : gac.DPTs,
             };
         }

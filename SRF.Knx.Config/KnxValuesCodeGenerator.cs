@@ -31,7 +31,7 @@ public static class KnxValuesCodeGenerator
         sb.AppendLine("using System.Collections.Generic;");
         sb.AppendLine("using HomeCompanion.Base.Values;");
         sb.AppendLine();
-        sb.AppendLine("namespace HomeCompanion.Knx;");
+        sb.AppendLine("namespace HomeCompanion.Integrations.Knx;");
         sb.AppendLine();
         sb.AppendLine("partial class KnxValues");
         sb.AppendLine("{");

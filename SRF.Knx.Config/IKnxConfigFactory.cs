@@ -1,3 +1,4 @@
+using HomeCompanion.Knx.Shared;
 using SRF.Knx.Config.Domain;
 using SRF.Knx.Config.ETS5;
 
@@ -26,4 +27,10 @@ public interface IKnxConfigFactory
     void SaveDomainConfig(DomainConfiguration domainConfig);
 
     DomainConfiguration CreateDomainConfigFromEtsExport();
+
+    /// <summary>Builds the HomeCompanionKnxAutoGen.json mapping from the loaded domain configuration.</summary>
+    Dictionary<string, HomeCompanionAutoGenEntry> GenerateHomeCompanionAutoGen(DomainConfiguration config);
+
+    /// <summary>Serializes the auto-gen mapping to <see cref="KnxConfiguration.HomeCompanionAutoGenFile"/>.</summary>
+    void SaveHomeCompanionAutoGen(Dictionary<string, HomeCompanionAutoGenEntry> entries);
 }

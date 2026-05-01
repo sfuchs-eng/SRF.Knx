@@ -18,6 +18,13 @@ public class KnxConfiguration
 
     public string KnxDomainConfigFile { get; set; } = "KnxDomainConfig.json";
 
+    /// <summary>
+    /// Path to the generated <c>HomeCompanionKnxAutoGen.json</c> file consumed by the
+    /// <c>HomeCompanion.Knx.CodeGen</c> source generator to produce correctly named
+    /// <c>KnxValues</c> properties.
+    /// </summary>
+    public string HomeCompanionAutoGenFile { get; set; } = "HomeCompanionKnxAutoGen.json";
+
     public string KnxMasterFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "knx-master");
 
     public class CommSecuritySettings

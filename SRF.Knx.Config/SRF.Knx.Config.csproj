@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HomeCompanion.Knx.Shared\HomeCompanion.Knx.Shared.csproj" />
     <ProjectReference Include="..\SRF.Knx.Core\SRF.Knx.Core.csproj" />
   </ItemGroup>
 </Project>

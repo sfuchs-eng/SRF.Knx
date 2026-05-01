@@ -1,10 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using HomeCompanion.Knx.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SRF.Knx.Config.Domain;
 using SRF.Knx.Config.ETS5;
+using SRF.Knx.Core;
 
 namespace SRF.Knx.Config;
 
@@ -22,7 +24,8 @@ public class KnxConfigFactory(
     TimeProvider timeProvider,
     ILogger<KnxConfigFactory> logger,
     ILoggerFactory loggerFactory,
-    IServiceProvider serviceProvider
+    IServiceProvider serviceProvider,
+    ILabelToNameConverter labelToNameConverter
 ) : IKnxConfigFactory
 {
     private readonly IOptionsSnapshot<KnxConfiguration> options = options;
@@ -32,6 +35,7 @@ public class KnxConfigFactory(
     private readonly ILogger<KnxConfigFactory> logger = logger;
     private readonly ILoggerFactory loggerFactory = loggerFactory;
     private readonly IServiceProvider serviceProvider = serviceProvider;
+    private readonly ILabelToNameConverter labelToNameConverter = labelToNameConverter;
 
     /// <summary>
     /// Consider injecting <see cref="DomainConfiguration"/> directly.
@@ -68,6 +72,39 @@ public class KnxConfigFactory(
         using var fs = new FileStream(options.Value.KnxDomainConfigFile, FileMode.Create);
         JsonSerializer.Serialize<Domain.DomainExtraConfig>(fs, domainConfig.Extra, DefaultJsonOptions);
         fs.Close();
+    }
+
+    /// <summary>
+    /// Builds the <c>HomeCompanionKnxAutoGen.json</c> mapping from the loaded <see cref="DomainConfiguration"/>.
+    /// For each KNX group address the property name is taken from <see cref="GroupAddressExtraConfig.Name"/>
+    /// when available, with a fallback to the <see cref="ILabelToNameConverter"/>.
+    /// </summary>
+    public Dictionary<string, HomeCompanionAutoGenEntry> GenerateHomeCompanionAutoGen(DomainConfiguration config)
+    {
+        var result = new Dictionary<string, HomeCompanionAutoGenEntry>();
+        foreach (var kvp in config.GroupAddresses)
+        {
+            var address3L = kvp.Key.To3LGroupAddress();
+            var gac = kvp.Value;
+            var name = config.Extra.TryGetGAExtraConfig(gac.Address, out var extraConfig) && !string.IsNullOrEmpty(extraConfig?.Name)
+                ? extraConfig!.Name
+                : labelToNameConverter.GetName(gac);
+            result[address3L] = new HomeCompanionAutoGenEntry
+            {
+                PropertyName = name,
+                Dpt = string.IsNullOrEmpty(gac.DPTs) ? null : gac.DPTs,
+            };
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Serializes the auto-gen mapping to <see cref="KnxConfiguration.HomeCompanionAutoGenFile"/>.
+    /// </summary>
+    public void SaveHomeCompanionAutoGen(Dictionary<string, HomeCompanionAutoGenEntry> entries)
+    {
+        var json = HomeCompanionAutoGenSerializer.Serialize(entries);
+        File.WriteAllText(options.Value.HomeCompanionAutoGenFile, json, System.Text.Encoding.UTF8);
     }
 
     public DomainConfiguration CreateDomainConfigFromEtsExport()

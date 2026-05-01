@@ -18,7 +18,7 @@ namespace SRF.Knx.Config;
 /// <br/>If only the <see cref="DomainConfiguration"/> is needed, get a singleton directly via dependency injection instead of using the class at hand.
 /// </summary>
 public class KnxConfigFactory(
-    IOptionsSnapshot<KnxConfiguration> options,
+    IOptionsMonitor<KnxConfiguration> options,
     DomainConfiguration domainConfiguration,
     TimeProvider timeProvider,
     ILogger<KnxConfigFactory> logger,
@@ -27,10 +27,10 @@ public class KnxConfigFactory(
     ILabelToNameConverter labelToNameConverter
 ) : IKnxConfigFactory
 {
-    private readonly IOptionsSnapshot<KnxConfiguration> options = options;
+    private readonly IOptionsMonitor<KnxConfiguration> options = options;
     private readonly DomainConfiguration domainConfiguration = domainConfiguration;
     private readonly TimeProvider timeProvider = timeProvider;
-    private KnxConfiguration Config { get => options.Value; }
+    private KnxConfiguration Config { get => options.CurrentValue; }
     private readonly ILogger<KnxConfigFactory> logger = logger;
     private readonly ILoggerFactory loggerFactory = loggerFactory;
     private readonly IServiceProvider serviceProvider = serviceProvider;
@@ -68,7 +68,7 @@ public class KnxConfigFactory(
 
     public void SaveDomainConfig(DomainConfiguration domainConfig)
     {
-        using var fs = new FileStream(options.Value.KnxDomainConfigFile, FileMode.Create);
+        using var fs = new FileStream(options.CurrentValue.KnxDomainConfigFile, FileMode.Create);
         JsonSerializer.Serialize<Domain.DomainExtraConfig>(fs, domainConfig.Extra, DefaultJsonOptions);
         fs.Close();
     }

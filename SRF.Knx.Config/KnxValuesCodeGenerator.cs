@@ -53,6 +53,8 @@ public static class KnxValuesCodeGenerator
                 sb.AppendLine($"    /// <remarks>{EscapeXmlComment(entry.Description!)}</remarks>");
             sb.AppendLine($"    public ValueBase<{csType}> {propName} {{ get; }} = new()");
             sb.AppendLine("    {");
+            sb.AppendLine($"       Name = \"{propName}\",");
+            sb.AppendLine($"       Label = {(string.IsNullOrWhiteSpace(entry.Label) ? "null" : $"\"{entry.Label}\"")},");
             sb.AppendLine("        BusMappings = new Dictionary<object, IValueBusEndpointMapping>");
             sb.AppendLine("        {");
             sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\")");

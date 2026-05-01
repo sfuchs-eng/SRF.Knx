@@ -11,7 +11,7 @@ using SRF.Knx.Core;
 namespace SRF.Knx.Config.Domain;
 
 public class DomainConfigurationFactory(
-    IOptionsSnapshot<KnxConfiguration> knxOptions,
+    IOptionsMonitor<KnxConfiguration> knxOptions,
     TimeProvider timeProvider,
     ILogger<DomainConfigurationFactory> logger
 ) : IDomainConfigurationFactory
@@ -51,8 +51,8 @@ public class DomainConfigurationFactory(
         if ( Cached == null )
             return false;
         string[] relevantFiles = [
-            knxOptions.Value.EtsGAExportFile,
-            knxOptions.Value.KnxDomainConfigFile
+            knxOptions.CurrentValue.EtsGAExportFile,
+            knxOptions.CurrentValue.KnxDomainConfigFile
         ];
         if (relevantFiles.Any(f => !File.Exists(f)))
         {
@@ -69,9 +69,9 @@ public class DomainConfigurationFactory(
         // import ETS group address file & generate missing / auto extra configs
         try
         {
-            if (!File.Exists(knxOptions.Value.EtsGAExportFile))
+            if (!File.Exists(knxOptions.CurrentValue.EtsGAExportFile))
             {
-                logger.LogError("ETS Group Address export file '{etsGAExportFile}' does not exist. Cannot load domain configuration.", knxOptions.Value.EtsGAExportFile);
+                logger.LogError("ETS Group Address export file '{etsGAExportFile}' does not exist. Cannot load domain configuration.", knxOptions.CurrentValue.EtsGAExportFile);
                 return new();
             }
 
@@ -101,23 +101,23 @@ public class DomainConfigurationFactory(
     {
         try
         {
-            using var jsonFile = new FileStream(knxOptions.Value.KnxDomainConfigFile, FileMode.Open, FileAccess.Read);
+            using var jsonFile = new FileStream(knxOptions.CurrentValue.KnxDomainConfigFile, FileMode.Open, FileAccess.Read);
             var res = JsonSerializer.Deserialize<DomainExtraConfig>(jsonFile);
             if (res == null)
             {
                 res = new DomainExtraConfig();
                 logger.LogWarning("Domain extra configuration file '{dcFile}' was empty, using blank config.",
-                    knxOptions.Value.KnxDomainConfigFile);
+                    knxOptions.CurrentValue.KnxDomainConfigFile);
             }
             else
                 logger.LogInformation("Loaded domain extra configuration from '{dcFile}'",
-                    knxOptions.Value.KnxDomainConfigFile);
+                    knxOptions.CurrentValue.KnxDomainConfigFile);
             return res;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Loading domain extra configuration from '{dcFile}' failed. Using blank config.",
-                knxOptions.Value.KnxDomainConfigFile);
+                knxOptions.CurrentValue.KnxDomainConfigFile);
             return new DomainExtraConfig();
         }
     }
@@ -127,9 +127,9 @@ public class DomainConfigurationFactory(
     /// </summary>
     protected Dictionary<ushort, EtsGroupAddressConfig> LoadGroupAddressConfigurations()
     {
-        var xdoc = XDocument.Load(knxOptions.Value.EtsGAExportFile);
+        var xdoc = XDocument.Load(knxOptions.CurrentValue.EtsGAExportFile);
         var gaElems = xdoc.Descendants().Where(e => e.Name.LocalName.Equals("GroupAddress"));
-        logger.LogTrace("Parsing {no} Group Address elements from '{EtsGAExportFile}'...", gaElems.Count(), knxOptions.Value.EtsGAExportFile);
+        logger.LogTrace("Parsing {no} Group Address elements from '{EtsGAExportFile}'...", gaElems.Count(), knxOptions.CurrentValue.EtsGAExportFile);
         var ser = new XmlSerializer(typeof(EtsGroupAddressConfig));
         Dictionary<ushort, EtsGroupAddressConfig> gacs = [];
         foreach (var rdr in gaElems.Select(e => e.CreateReader()))
@@ -231,12 +231,12 @@ public class DomainConfigurationFactory(
         // modify persisted extra config json file
         try
         {
-            using var jsonFile = new FileStream(knxOptions.Value.KnxDomainConfigFile, FileMode.Create, FileAccess.Write);
+            using var jsonFile = new FileStream(knxOptions.CurrentValue.KnxDomainConfigFile, FileMode.Create, FileAccess.Write);
             JsonSerializer.Serialize(jsonFile, extraConfig, JsonOptionsExtraConfig);
             logger.LogInformation("Modified domain extra configuration in '{dcFile}'",
-                knxOptions.Value.KnxDomainConfigFile);
+                knxOptions.CurrentValue.KnxDomainConfigFile);
             /*
-            using var jsonFile = new FileStream(knxOptions.Value.KnxDomainConfigFile, FileMode.Open, FileAccess.ReadWrite);
+            using var jsonFile = new FileStream(knxOptions.CurrentValue.KnxDomainConfigFile, FileMode.Open, FileAccess.ReadWrite);
             using var jsonDoc = JsonDocument.Parse(jsonFile);
             foreach (var modifier in modifiers)
             {
@@ -247,7 +247,7 @@ public class DomainConfigurationFactory(
         catch (Exception ex)
         {
             logger.LogError(ex, "Modifying domain extra configuration in '{dcFile}' failed.",
-                knxOptions.Value.KnxDomainConfigFile);
+                knxOptions.CurrentValue.KnxDomainConfigFile);
         }
     }
 

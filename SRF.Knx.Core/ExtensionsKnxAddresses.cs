@@ -73,6 +73,11 @@ public static class ExtensionsKnxAddresses
         return knxAddress.ToKnxAddress(GroupAddressMasks);
     }
 
+    public static ushort ToKnxIndividualAddress(this string knxAddress)
+    {
+        return knxAddress.ToKnxAddress(IndividualAddressMasks);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static ushort ToKnxAddress(this string knxAddress, Dictionary<int, KnxAddressLevelMask> demasker)
     {

@@ -15,7 +15,7 @@ public class IndividualAddress : BusAddress
 
     public IndividualAddress(string addr) : base()
     {
-        SetAddress(addr);
+        this.Address = addr.ToKnxIndividualAddress();
     }
 
     public IndividualAddress(ushort address) : base(address)

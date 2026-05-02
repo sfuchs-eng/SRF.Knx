@@ -30,6 +30,7 @@ public static class KnxValuesCodeGenerator
         sb.AppendLine("#nullable enable");
         sb.AppendLine("using System.Collections.Generic;");
         sb.AppendLine("using HomeCompanion.Base.Values;");
+        sb.AppendLine("using Microsoft.Extensions.Logging;");
         sb.AppendLine();
         sb.AppendLine("namespace HomeCompanion.Integrations.Knx;");
         sb.AppendLine();
@@ -51,7 +52,7 @@ public static class KnxValuesCodeGenerator
             sb.AppendLine($"    /// <summary>{summaryText}</summary>");
             if (!string.IsNullOrWhiteSpace(entry.Description))
                 sb.AppendLine($"    /// <remarks>{EscapeXmlComment(entry.Description!)}</remarks>");
-            sb.AppendLine($"    public ValueBase<{csType}> {propName} {{ get; }} = new()");
+            sb.AppendLine($"    public ValueBase<{csType}> {propName} {{ get; }} = new(loggerFactory.CreateLogger<ValueBase<{csType}>>())");
             sb.AppendLine("    {");
             sb.AppendLine($"       Name = \"{propName}\",");
             sb.AppendLine($"       Label = {(string.IsNullOrWhiteSpace(entry.Label) ? "null" : $"\"{entry.Label}\"")},");

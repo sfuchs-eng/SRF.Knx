@@ -29,11 +29,12 @@ public abstract class BusAddress : IEquatable<BusAddress>, IEqualityComparer<Bus
 
     protected BusAddress()
     {
+        UpdateHashCode();
     }
 
     public BusAddress(ushort address)
     {
-        _address = address;
+        Address = address;
     }
 
     protected void UpdateHashCode()
@@ -61,7 +62,7 @@ public abstract class BusAddress : IEquatable<BusAddress>, IEqualityComparer<Bus
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetHashCode([DisallowNull] BusAddress obj)
     {
-        return hashCode;
+        return obj.hashCode;
     }
 
     public override bool Equals(object? obj)

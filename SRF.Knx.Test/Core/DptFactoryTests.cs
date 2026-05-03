@@ -139,6 +139,18 @@ public class DptFactoryTests
         Assert.That(dpt.Id.Sub, Is.EqualTo(sub));
     }
 
+    [Test]
+    [Description("DPST-17-1 (scene number) must decode to scalar byte, not byte[].")]
+    public void Get_Dpst17_1_DecodesToByte()
+    {
+        var dpt = _factory.Get(17, 1);
+
+        var decoded = dpt.ToValue(new GroupValue([0x3F]));
+
+        Assert.That(decoded, Is.TypeOf<byte>());
+        Assert.That(decoded, Is.EqualTo((byte)0x3F));
+    }
+
     private sealed class KnxMasterDataProviderStub(KnxMasterData masterData) : IKnxMasterDataProvider
     {
         public KnxMasterData GetMasterData() => masterData;

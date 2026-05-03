@@ -577,7 +577,23 @@ public class PdtEncoderFactoryTests
     }
 
     [Test]
-    [TestCase(PropertyDataTypeNumber.PDT_GENERIC_01, 1)]
+    public void PdtEncoder_Generic01_EncodesAndDecodesAsByte()
+    {
+        // Arrange
+        var encoder = _factory.PdtEncodersByNumber[PropertyDataTypeNumber.PDT_GENERIC_01] as PdtEncoder<byte>;
+        byte testValue = 0x2A;
+
+        // Act
+        var encoded = encoder!.Encoder(testValue);
+        var decoded = encoder.Decoder(encoded);
+
+        // Assert
+        Assert.That(encoded.Value.Length, Is.EqualTo(1));
+        Assert.That(encoded.Value[0], Is.EqualTo(testValue));
+        Assert.That(decoded, Is.EqualTo(testValue));
+    }
+
+    [Test]
     [TestCase(PropertyDataTypeNumber.PDT_GENERIC_02, 2)]
     [TestCase(PropertyDataTypeNumber.PDT_GENERIC_03, 3)]
     [TestCase(PropertyDataTypeNumber.PDT_GENERIC_04, 4)]

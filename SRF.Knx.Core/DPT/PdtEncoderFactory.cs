@@ -197,10 +197,10 @@ public class PdtEncoderFactory : IPdtEncoderFactory
                 Decoder = groupValue => groupValue.Value
             }
         },
-        { PropertyDataTypeNumber.PDT_GENERIC_01, new PdtEncoder<byte[]>
+        { PropertyDataTypeNumber.PDT_GENERIC_01, new PdtEncoder<byte>
             {
-                Encoder = value => FixedLengthByteArrayEncoder(value, 1),
-                Decoder = groupValue => FixedLengthByteArrayDecoder(groupValue)
+                Encoder = value => new GroupValue([value]),
+                Decoder = groupValue => groupValue.Value[0]
             }
         },
         { PropertyDataTypeNumber.PDT_GENERIC_02, new PdtEncoder<byte[]>

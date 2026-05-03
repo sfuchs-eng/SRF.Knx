@@ -29,10 +29,11 @@ public class DptFactory(
 
     public DptBase Get(DataPointTypeId dpstId)
     {
+        /* not relevant
         if (dpstId.IsMainOnly)
         {
             logger.LogDebug("DPT {Main} requested with main number only (no sub-type). The main type PDT will be used for instantiation. This may lead to incorrect behavior if the assumed PDT does not match the intended sub-type.", dpstId.Main);
-        }
+        }*/
 
         var dptMeta = DptMetadata.FromMasterData(dpstId, masterData);
 

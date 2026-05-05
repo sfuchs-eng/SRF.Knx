@@ -25,7 +25,7 @@ See the command line tool `SRF.Network.Cli` in the [SRF.Network](https://github.
   ETS 4 won't work due to missing DPT information. ETS 6 could not be tested yet.
   - Adjust [OpenHabItemTemplates.json](./Resources/OpenHabItemTemplates.json) to the needs of your project(s)
 - Ensure the configuration settings of `KnxConfiguration` are reflected either in your appsettings.json or in a user specific configuration file. If you're using `SRF.Network.Cli`, the latter is the recommended approach, using a file named
-`SRF.Network.json` placed in the AppData directory, e.g. [/home/sfuchs/.config/SRF.Network.json](/home/sfuchs/.config/SRF.Network.json). By default, `KnxConfiguration` is bound to config section `Knx`.
+`SRF.Network.json` placed in the AppData directory, e.g. `/home/<user>/.config/SRF.Network.json`. By default, `KnxConfiguration` is bound to config section `Knx`.
 
 Example file SRF.Network.json in the AppData directory:
 
@@ -33,14 +33,14 @@ Example file SRF.Network.json in the AppData directory:
 {
     "Knx": {
         "ConnectionString": "Type=IpRouting",
-        "EtsGAExportFile": "/home/sfuchs/src/knx-master/XProj_GroupAddressesETS.xml",
-        "KnxMasterFolder": "/home/sfuchs/src/knx-master/project-20/",
-        "KnxDomainConfigFile": "/home/sfuchs/src/knx-master/XProj_KnxDomainConfig.json",
-        "HomeCompanionCodeGenFile": "/home/sfuchs/src/HomeCompanion/HomeCompanion.Knx/KnxValues.generated.cs",
+        "EtsGAExportFile": "/home/<user>/src/knx-master/XProj_GroupAddressesETS.xml",
+        "KnxMasterFolder": "/home/<user>/src/knx-master/project-20/",
+        "KnxDomainConfigFile": "/home/<user>/src/knx-master/XProj_KnxDomainConfig.json",
+        "HomeCompanionCodeGenFile": "/home/<user>/src/HomeCompanion/HomeCompanion.Knx/KnxValues.generated.cs",
         "OpenHab": {
-            "BaseConfigFile": "/home/sfuchs/src/knx-master/XProj_OpenHabKnxConfig.json",
-            "TemplatesFolder": "/home/sfuchs/src/knx-master/OpenHabTemplates",
-            "OHConfigRoot": "/home/sfuchs/src/openhab.git"
+            "BaseConfigFile": "/home/<user>/src/knx-master/XProj_OpenHabKnxConfig.json",
+            "TemplatesFolder": "/home/<user>/src/knx-master/OpenHabTemplates",
+            "OHConfigRoot": "/home/<user>/src/openhab.git"
         }
     }
 }

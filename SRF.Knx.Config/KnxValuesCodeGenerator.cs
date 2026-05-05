@@ -29,7 +29,7 @@ public static class KnxValuesCodeGenerator
         sb.AppendLine("// Do not edit manually. Regenerate when KNX group address configuration changes.");
         sb.AppendLine("#nullable enable");
         sb.AppendLine("using System.Collections.Generic;");
-        sb.AppendLine("using HomeCompanion.Base.Values;");
+        sb.AppendLine("using HomeCompanion.Values;");
         sb.AppendLine("using Microsoft.Extensions.Logging;");
         sb.AppendLine();
         sb.AppendLine("namespace HomeCompanion.Integrations.Knx;");

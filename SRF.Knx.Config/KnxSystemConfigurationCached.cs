@@ -31,12 +31,18 @@ public class KnxSystemConfigurationCached : IKnxSystemConfiguration
 
     public void ClearCache()
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException("Application supposed to be restarted upon KNX configuration changes. Clearing the cache at runtime is not supported.");
     }
 
     public DptBase GetDpt(GroupAddress groupAddress)
     {
-        throw new NotImplementedException();
+        var meta = GetGroupAddressMeta(groupAddress);
+        return meta.Dpt;
+    }
+
+    public DptBase GetDptFromId(string dptId)
+    {
+        return GetDptFromId(dptId);
     }
 
     public GroupAddressMeta GetGroupAddressMeta(GroupAddress groupAddress)
@@ -61,5 +67,17 @@ public class KnxSystemConfigurationCached : IKnxSystemConfiguration
     {
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
         return GroupAddressesByName.TryGetValue(name, out var meta) ? meta : null;
+    }
+
+    public bool TryGetGroupAddressMeta(GroupAddress ga, out GroupAddressMeta? gaConfig)
+    {
+        ArgumentNullException.ThrowIfNull(ga, nameof(ga));
+        if (GroupAddressesByAddress.TryGetValue(ga, out var meta))
+        {
+            gaConfig = meta;
+            return true;
+        }
+        gaConfig = null;
+        return false;
     }
 }

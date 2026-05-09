@@ -1,4 +1,5 @@
 using SRF.Knx.Core;
+using SRF.Knx.Core.DPT;
 
 namespace SRF.Knx.Config;
 
@@ -18,4 +19,6 @@ public interface IKnxSystemConfiguration : IDptResolver
     GroupAddressMeta GetGroupAddressMeta(string name);
     GroupAddressMeta? GetGroupAddressMetaOrNull(GroupAddress groupAddress);
     GroupAddressMeta? GetGroupAddressMetaOrNull(string name);
+    bool TryGetGroupAddressMeta(GroupAddress ga, out GroupAddressMeta? gaConfig);
+    DptBase GetDptFromId(string dptId);
 }

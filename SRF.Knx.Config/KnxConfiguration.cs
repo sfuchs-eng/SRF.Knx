@@ -12,6 +12,13 @@ public class KnxConfiguration
 {
     public static readonly string SectionName = "Knx";
 
+    /// <summary>
+    /// If true, the application shall read the readable Group Addresses on startup to initialize the internal object cache.
+    /// Set to false to prevent a background task sending out read requests for all readable GAs on startup.
+    /// </summary>
+    /// <value></value>
+    public bool ReadGroupAddressesOnStartup { get; set; } = true;
+
     public string ConnectionString { get; set; } = "Type=IpRouting";
 
     public string EtsGAExportFile { get; set; } = "GroupAddressExport.xml";
@@ -37,12 +44,15 @@ public class KnxConfiguration
     }
     public CommSecuritySettings CommSecurity { get; set; } = new CommSecuritySettings();
 
+    /// <summary>
+    /// OpenHAB configuration generation (Things, Channels, Items) for KNX Group Addresses.
+    /// </summary>
     public class OpenHabOptions
     {
         public string BaseConfigFile { get; set; } = "OpenHabKnxMetaConfig.json";
         public string TemplatesFolder { get; set; } = "Resources";
         public string ItemTemplatesFile { get; set; } = "OpenHabItemTemplates.json";
-        
+
         public string KnxDptMappings { get; set; } = "OpenHabDptMappings.json";
         public string OHConfigRoot { get; set; } = "/etc/openhab";
 

@@ -6,6 +6,7 @@ public class DptMemoryCache(IDptFactory dptFactory) : IDptFactory
 {
     private readonly IDptFactory _dptFactory = dptFactory;
     private readonly Dictionary<DataPointTypeId, DptBase> _cache = [];
+    private readonly object _lock = new();
 
     public DptBase Get(int main, int sub)
     {
@@ -14,11 +15,14 @@ public class DptMemoryCache(IDptFactory dptFactory) : IDptFactory
 
     public DptBase Get(DataPointTypeId dpstId)
     {
-        if (_cache.TryGetValue(dpstId, out var dpt))
-            return dpt;
+        lock (_lock)
+        {
+            if (_cache.TryGetValue(dpstId, out var dpt))
+                return dpt;
 
-        dpt = _dptFactory.Get(dpstId);
-        _cache[dpstId] = dpt;
-        return dpt;
+            dpt = _dptFactory.Get(dpstId);
+            _cache[dpstId] = dpt;
+            return dpt;
+        }
     }
 }

@@ -15,6 +15,8 @@ public abstract class DptBase
 
     public abstract GroupValue ToGroupValue(object value);
 
+    public abstract Type ValueType { get; }
+
     public virtual string Format(
         GroupValue groupValue,
         string? language,

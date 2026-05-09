@@ -12,6 +12,8 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
     public required Func<T, GroupValue> Encoder { get; init; }
     public required Func<GroupValue, T> Decoder { get; init; }
 
+    public override Type ValueType => typeof(T);
+
     public T Decode(GroupValue groupValue) => Decoder(groupValue);
 
     public GroupValue Encode(T value) => Encoder(value);

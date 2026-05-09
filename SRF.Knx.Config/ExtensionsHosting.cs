@@ -7,6 +7,14 @@ namespace SRF.Knx.Config;
 
 public static class ExtensionsHosting
 {
+    /// <summary>
+    /// Extension method to add KNX configuration services to the dependency injection container.
+    /// Registers the KNX configuration, system configuration, and DPT resolver services.
+    /// Calls <see cref="AddKnxCore"/> to register core KNX services as well in the right order.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="sectionName">The configuration section name. Defaults to <c>KnxConfiguration.SectionName</c>.</param>
+    /// <returns>The updated service collection.</returns>
     public static IServiceCollection AddKnxConfig(this IServiceCollection services, string? sectionName = null)
     {
         services.TryAddSingleton(TimeProvider.System);
@@ -26,6 +34,11 @@ public static class ExtensionsHosting
 
         services.TryAddSingleton<IKnxMasterDataProvider, KnxMasterDataProvider>();
 
-       return services;
+        services.TryAddSingleton<IKnxSystemConfiguration, KnxSystemConfigurationCached>();
+        services.AddSingleton<IDptResolver>(sp => sp.GetRequiredService<IKnxSystemConfiguration>()); // error out in case IDptResolver is already registered. Libraries using KnxCore only get a simpler IDptResolver which is using TryAddSingleton.
+
+        services.AddKnxCore();
+
+        return services;
     }
 }

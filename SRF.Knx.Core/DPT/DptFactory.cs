@@ -27,7 +27,7 @@ public class DptFactory(
         return Get(new DataPointTypeId(main, sub));
     }
 
-    public DptBase Get(DataPointTypeId dpstId)
+    public virtual DptBase Get(DataPointTypeId dpstId)
     {
         /* not relevant
         if (dpstId.IsMainOnly)
@@ -87,7 +87,7 @@ public class DptFactory(
     /// </summary>
     public Dictionary<DPT.DataPointTypeId, DptCreator> DptCreatorsById = new()
     {
-        /*
+        /* Example
         { new DataPointTypeId("1.001"), new DptCreator((dptm,nif) => new DptSimple<UInt32>()
             {
                 Id = dptm.Id,

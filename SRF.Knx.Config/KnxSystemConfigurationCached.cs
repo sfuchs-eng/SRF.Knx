@@ -12,12 +12,14 @@ public class KnxSystemConfigurationCached : IKnxSystemConfiguration
 {
     private readonly Dictionary<GroupAddress, GroupAddressMeta> GroupAddressesByAddress;
     private readonly Dictionary<string, GroupAddressMeta> GroupAddressesByName;
+    private readonly IDptFactory _dptFactory;
 
     public KnxSystemConfigurationCached(IEnumerable<GroupAddressConfiguration> groupAddresses, IDptFactory dptFactory)
     {
         ArgumentNullException.ThrowIfNull(groupAddresses, nameof(groupAddresses));
         ArgumentNullException.ThrowIfNull(dptFactory, nameof(dptFactory));
 
+        _dptFactory = dptFactory;
         GroupAddressesByAddress = new Dictionary<GroupAddress, GroupAddressMeta>();
         GroupAddressesByName = new Dictionary<string, GroupAddressMeta>();
 
@@ -42,7 +44,7 @@ public class KnxSystemConfigurationCached : IKnxSystemConfiguration
 
     public DptBase GetDptFromId(string dptId)
     {
-        return GetDptFromId(dptId);
+        return _dptFactory.Get(new DataPointTypeId(dptId));
     }
 
     public GroupAddressMeta GetGroupAddressMeta(GroupAddress groupAddress)

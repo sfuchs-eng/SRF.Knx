@@ -34,7 +34,10 @@ public static class ExtensionsHosting
 
         services.TryAddSingleton<IKnxMasterDataProvider, KnxMasterDataProvider>();
 
-        services.TryAddSingleton<IKnxSystemConfiguration, KnxSystemConfigurationCached>();
+        services.TryAddSingleton<IKnxSystemConfiguration>(sp =>
+            new KnxSystemConfigurationCached(
+                GroupAddressConfiguration.FromDomainConfig(sp.GetRequiredService<DomainConfiguration>()),
+                sp.GetRequiredService<IDptFactory>()));
         services.AddSingleton<IDptResolver>(sp => sp.GetRequiredService<IKnxSystemConfiguration>()); // error out in case IDptResolver is already registered. Libraries using KnxCore only get a simpler IDptResolver which is using TryAddSingleton.
 
         services.AddKnxCore();

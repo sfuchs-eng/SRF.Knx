@@ -12,7 +12,7 @@ public class KnxConfiguration
 {
     public static readonly string SectionName = "Knx";
 
-    public bool Enabled { get; set; } = true;
+    public bool Enable { get; set; } = true;
 
     /// <summary>
     /// If true, the application shall read the readable Group Addresses on startup to initialize the internal object cache.

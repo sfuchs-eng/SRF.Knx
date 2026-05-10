@@ -12,6 +12,8 @@ public class KnxConfiguration
 {
     public static readonly string SectionName = "Knx";
 
+    public bool Enabled { get; set; } = true;
+
     /// <summary>
     /// If true, the application shall read the readable Group Addresses on startup to initialize the internal object cache.
     /// Set to false to prevent a background task sending out read requests for all readable GAs on startup.

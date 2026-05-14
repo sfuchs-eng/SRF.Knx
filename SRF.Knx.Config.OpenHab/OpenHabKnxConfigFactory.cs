@@ -371,6 +371,8 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
         var dptMappingCandidates = dptMappingLookup
             .Where(dptm => dptm.DPTs.Select(d => new DataPointTypeId(d)).Any(d => ohgac.DPT?.Equals(d) ?? false))
             .ToArray();
+        string? requestDptsOverride = null;
+
         if (dptMappingCandidates.Length == 0)
         {
             if (ohgac.DPT == null)
@@ -392,12 +394,13 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
                 }
             }
 
+            var dptMapping = dptMappingCandidates[0];
+
             if (dptMappingCandidates.Length > 1)
             {
-                logger.LogWarning("Multiple ({count}) DPT mapping overrides found for GA {etsGA} '{etsGALabel}' with DPT '{dpt}'. Using first match with channel type '{channelType}'", dptMappingCandidates.Length, ets.Address.AddressAsString, ets.Label, ohgac.DPTs, dptMappingCandidates.FirstOrDefault()?.Channels.FirstOrDefault()?.ChannelType);
+                logger.LogWarning("Multiple ({count}) DPT mapping overrides found for GA {etsGA} '{etsGALabel}' with DPT '{dpt}'. Using first match with channel type '{channelType}' and DPT match [{dptSignature}]",
+                    dptMappingCandidates.Length, ets.Address.AddressAsString, ets.Label, ohgac.DPTs, dptMapping.Channels.FirstOrDefault()?.ChannelType, string.Join(", ", dptMapping.DPTs ?? []));
             }
-
-            var dptMapping = dptMappingCandidates[0];
 
             // which channel template to use?
             var channelTemplate = dptMapping.Channels
@@ -405,6 +408,9 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
                     !string.IsNullOrWhiteSpace(etsChannelParameter)
                     && ch.Parameter.Equals(etsChannelParameter, StringComparison.OrdinalIgnoreCase)
                 ) ?? dptMapping.Channels[0];
+
+            if (!string.IsNullOrWhiteSpace(dptMapping.TreatAsDpt))
+                requestDptsOverride = dptMapping.TreatAsDpt;
 
             // apply overrides
             ohgac.ItemType = channelTemplate.ItemType.ToString();
@@ -416,7 +422,7 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
             ohgac.Channel.Parameter = channelTemplate.Parameter;
             if (channelTemplate.Dimension != null)
                 ohgac.Channel.Dimension = channelTemplate.Dimension;
-
+    
             // fix Stereotype dependent aspects
             switch (channelTemplate.Stereotype)
             {
@@ -473,6 +479,17 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
 
         // Icon & ItemType set via Template-Matching; other overrides possible (e.g. DataType):
         itemTemplates.SetDefaultConfig(ets, extra, ohgac);
+
+        // DPT might need an override after the templating is over
+        if (!string.IsNullOrWhiteSpace(requestDptsOverride))
+        {
+            ohgac.Channel.DPTs = requestDptsOverride;
+            logger.LogDebug("Overriding DPT for GA {etsGA} '{etsGALabel}' to '{dpt}' as requested by DPT mapping", ets.Address.AddressAsString, ets.Label, requestDptsOverride);
+        }
+        else
+        {
+            logger.LogDebug("No DPT override requested for GA {etsGA} '{etsGALabel}' with DPT '{dpt}'", ets.Address.AddressAsString, ets.Label, ohgac.DPTs);
+        }
 
         return ohgac;
     }

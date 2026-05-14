@@ -9,5 +9,11 @@ public partial class DptMappingLookupItem
 
     public string[] DPTs { get; set; } = [];
 
+    /// <summary>
+    /// If set, this DPT shall override the DPT set in ETS to derive the OpenHAB channel DPT in <see cref="BaseConfig.OHKnxGroupAddress.ChannelConfig.DPTs"/>
+    /// </summary>
+    /// <value></value>
+    public string? TreatAsDpt { get; set; }
+
     public DptConfigOptions[] Channels { get; set; } = [];
 }

@@ -34,5 +34,5 @@ public interface IKnxConfigFactory
     /// Generates the full content of <c>KnxValues.generated.cs</c> from the domain configuration.
     /// Write the result to <see cref="KnxConfiguration.HomeCompanionCodeGenFile"/>.
     /// </summary>
-    string GenerateHomeCompanionCode(DomainConfiguration config);
+    string GenerateHomeCompanionCode(DomainConfiguration config, Action<Dictionary<string, HomeCompanionAutoGenEntry>>? postProcessEntries = null);
 }

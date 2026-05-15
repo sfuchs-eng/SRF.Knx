@@ -45,6 +45,8 @@ public static class KnxValuesCodeGenerator
             var entry = kvp.Value;
             var csType = GetCSharpType(entry.Dpt);
             var propName = MakeUnique(entry.PropertyName, usedNames);
+            var addOpenHabInitializationMapping = !string.IsNullOrWhiteSpace(entry.OpenHabItemName);
+            var openHabItemName = entry.OpenHabItemName;
             var summaryText = !string.IsNullOrWhiteSpace(entry.Label)
                 ? $"{EscapeXmlComment(entry.Label)} (<c>{address}</c>)"
                 : $"{EscapeXmlComment(entry.PropertyName)} (<c>{address}</c>)";
@@ -58,7 +60,9 @@ public static class KnxValuesCodeGenerator
             sb.AppendLine($"       Label = {(string.IsNullOrWhiteSpace(entry.Label) ? "null" : $"\"{entry.Label}\"")},");
             sb.AppendLine("        BusMappings = new Dictionary<object, IValueBusEndpointMapping>");
             sb.AppendLine("        {");
-            sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\")");
+            sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\"),");
+            if (addOpenHabInitializationMapping)
+                sb.AppendLine($"            [OpenHab.OpenHabBusEndpointMapping.BusId] = new OpenHab.OpenHabBusEndpointMapping(\"{openHabItemName}\") {{ Communication = BusCommunication.InitializeOnly }},");
             sb.AppendLine("        }");
             sb.AppendLine("    };");
             sb.AppendLine();

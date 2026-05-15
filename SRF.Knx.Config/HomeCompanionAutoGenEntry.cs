@@ -29,4 +29,9 @@ public class HomeCompanionAutoGenEntry
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Dpt { get; set; }
+
+    /// <summary>
+    /// Optional OpenHAB item name for initial state retrieval during value initialization, if set.
+    /// </summary>
+    public string? OpenHabItemName { get; set; }
 }

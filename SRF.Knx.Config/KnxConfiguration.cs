@@ -66,6 +66,12 @@ public class KnxConfiguration
         public string UnitSystemConfig { get; set; } = "UnitSystemConfig.json";
         public int WaitTimeBeforeWritingThingsFileSec { get; set; } = 20;
     }
-    
+
     public OpenHabOptions OpenHab { get; set; } = new();
+    
+    /// <summary>
+    /// Generated KNX value properties in <c>KnxValues.generated.cs</c> can optionally include an OpenHAB bus mapping for initialization.
+    /// The feature uses HomeCompanion.Integrations.OpenHab that discovers the mappings and initializes the IValues accordingly on startup by reading the current state of the linked OpenHAB items.
+    /// </summary>
+    public bool LinkKnxValuesToOpenHabForInitialization { get; set; } = true;
 }

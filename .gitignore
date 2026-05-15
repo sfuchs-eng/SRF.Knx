@@ -489,3 +489,5 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 SRF.Knx.Config/Resources/BHw17_GroupAddressesETS.xml
+
+*.lscache

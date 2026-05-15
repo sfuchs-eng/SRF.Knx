@@ -100,9 +100,10 @@ public class KnxConfigFactory(
     }
 
     /// <inheritdoc/>
-    public string GenerateHomeCompanionCode(DomainConfiguration config)
+    public string GenerateHomeCompanionCode(DomainConfiguration config, Action<Dictionary<string, HomeCompanionAutoGenEntry>>? postProcessEntries = null)
     {
         var entries = GenerateHomeCompanionAutoGen(config);
+        postProcessEntries?.Invoke(entries);
         return KnxValuesCodeGenerator.Generate(entries);
     }
 

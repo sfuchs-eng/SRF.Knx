@@ -83,17 +83,26 @@ public class KnxConfigFactory(
         var result = new Dictionary<string, HomeCompanionAutoGenEntry>();
         foreach (var kvp in config.GroupAddresses)
         {
+            var extra = config.Extra.TryGetGAExtraConfig(kvp.Value.Address, out var extraConfig) ? extraConfig : null;
             var address3L = kvp.Key.To3LGroupAddress();
             var gac = kvp.Value;
-            var name = config.Extra.TryGetGAExtraConfig(gac.Address, out var extraConfig) && !string.IsNullOrEmpty(extraConfig?.Name)
-                ? extraConfig!.Name
+            var name = extra != null && !string.IsNullOrEmpty(extra.Name)
+                ? extra.Name
                 : labelToNameConverter.GetName(gac);
+            var comms = KnxObjectBusCommunication.Write | KnxObjectBusCommunication.Transmit | KnxObjectBusCommunication.Update;
+            if (extra?.HomeCompanion?.AnswerReadRequests ?? false)
+                comms |= KnxObjectBusCommunication.Read;
+            if (extra?.HomeCompanion?.InitializeFromKnxBus ?? false)
+                comms |= KnxObjectBusCommunication.Initialize;
+
             result[address3L] = new HomeCompanionAutoGenEntry
             {
                 PropertyName = name,
                 Label = string.IsNullOrWhiteSpace(gac.Label) ? null : gac.Label,
                 Description = string.IsNullOrWhiteSpace(gac.Description) ? null : gac.Description,
                 Dpt = string.IsNullOrEmpty(gac.DPTs) ? null : gac.DPTs,
+                Communication = comms,
+                WantsOpenHabInitialization = extra?.HomeCompanion?.InitializeFromOpenHab ?? false,
             };
         }
         return result;

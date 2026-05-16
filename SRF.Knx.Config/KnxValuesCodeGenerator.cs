@@ -45,11 +45,21 @@ public static class KnxValuesCodeGenerator
             var entry = kvp.Value;
             var csType = GetCSharpType(entry.Dpt);
             var propName = MakeUnique(entry.PropertyName, usedNames);
-            var addOpenHabInitializationMapping = !string.IsNullOrWhiteSpace(entry.OpenHabItemName);
+            var addOpenHabInitializationMapping = entry.WantsOpenHabInitialization && !string.IsNullOrWhiteSpace(entry.OpenHabItemName);
             var openHabItemName = entry.OpenHabItemName;
-            var summaryText = !string.IsNullOrWhiteSpace(entry.Label)
-                ? $"{EscapeXmlComment(entry.Label)} (<c>{address}</c>)"
-                : $"{EscapeXmlComment(entry.PropertyName)} (<c>{address}</c>)";
+            var summaryText = (!string.IsNullOrWhiteSpace(entry.Label)
+                ? $"{EscapeXmlComment(entry.Label)}"
+                : $"{EscapeXmlComment(entry.PropertyName)}") +  $" (<c>{address}</c>"+ (string.IsNullOrWhiteSpace(entry.Dpt) ? ")" : $", {entry.Dpt})");
+
+            // Determine bus communication flags for the generated KnxBusEndpointMapping based on the entry's Communication property.
+            var commFlagsList = new List<string>();
+            if (entry.Communication.HasFlag(KnxObjectBusCommunication.Read)) commFlagsList.Add("BusCommunication.AnswerReadRequests");
+            if (entry.Communication.HasFlag(KnxObjectBusCommunication.Write) || entry.Communication.HasFlag(KnxObjectBusCommunication.Update)) commFlagsList.Add("BusCommunication.Receive");
+            if (entry.Communication.HasFlag(KnxObjectBusCommunication.Transmit)) commFlagsList.Add("BusCommunication.Transmit");
+            if (entry.Communication.HasFlag(KnxObjectBusCommunication.Initialize)) commFlagsList.Add("BusCommunication.Initialize");
+            if ( commFlagsList.Count == 0 )
+                commFlagsList.Add("BusCommunication.None");
+            var commFlags = string.Join(" | ", commFlagsList);
 
             sb.AppendLine($"    /// <summary>{summaryText}</summary>");
             if (!string.IsNullOrWhiteSpace(entry.Description))
@@ -58,12 +68,12 @@ public static class KnxValuesCodeGenerator
             sb.AppendLine("    {");
             sb.AppendLine($"       Name = \"{propName}\",");
             sb.AppendLine($"       Label = {(string.IsNullOrWhiteSpace(entry.Label) ? "null" : $"\"{entry.Label}\"")},");
-            sb.AppendLine("        BusMappings = new Dictionary<object, IValueBusEndpointMapping>");
-            sb.AppendLine("        {");
-            sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\"),");
+            sb.AppendLine("       BusMappings = new Dictionary<object, IValueBusEndpointMapping>");
+            sb.AppendLine("       {");
+            sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\") {{ Communication = {commFlags} }},");
             if (addOpenHabInitializationMapping)
-                sb.AppendLine($"            [OpenHab.OpenHabBusEndpointMapping.BusId] = new OpenHab.OpenHabBusEndpointMapping(\"{openHabItemName}\") {{ Communication = BusCommunication.InitializeOnly }},");
-            sb.AppendLine("        }");
+                sb.AppendLine($"            [OpenHab.OpenHabBusEndpointMapping.BusId] = new OpenHab.OpenHabBusEndpointMapping(\"{openHabItemName}\") {{ Communication = BusCommunication.Initialize }},");
+            sb.AppendLine("       }");
             sb.AppendLine("    };");
             sb.AppendLine();
         }

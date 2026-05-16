@@ -31,7 +31,27 @@ public class HomeCompanionAutoGenEntry
     public string? Dpt { get; set; }
 
     /// <summary>
-    /// Optional OpenHAB item name for initial state retrieval during value initialization, if set.
+    /// Communication flags for the KNX bus endpoint, if set.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public KnxObjectBusCommunication Communication { get; set; }
+
+    /// <summary>
+    /// Optional OpenHAB item name for mapping the generated <c>IValue</c> not only to the KNX bus but also to OpenHAB's item registry, enabling state initialization from OpenHAB and potentially other OpenHAB bus mappings.
+    /// Make sure to prevent circular loops via KNX Group Address communication by configuring the appropriate <see cref="Communication"/> flags. Defaults should be ok.
     /// </summary>
     public string? OpenHabItemName { get; set; }
+
+    /// <summary>
+    /// Whether the generated code should attempt to initialize the value from OpenHAB on startup.
+    /// Only has an effect if <see cref="OpenHabItemName"/> is set.
+    /// </summary>
+    public bool WantsOpenHabInitialization { get; set; } = true;
+
+    /// <summary>
+    /// Whether the generated code should attempt to initialize the value from OpenHAB on startup.
+    /// Only has an effect if <see cref="OpenHabItemName"/> is set and <see cref="WantsOpenHabInitialization"/> is <see langword="true"/>.
+    /// If both is the case, the <c>IValue</c> gets an additional OpenHab bus mapping making it eligible for OpenHAB state initialization.
+    /// </summary>
+    public bool IsOpenHabInitialized => OpenHabItemName != null && WantsOpenHabInitialization;
 }

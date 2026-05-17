@@ -70,7 +70,7 @@ public static class KnxValuesCodeGenerator
             sb.AppendLine($"       Label = {(string.IsNullOrWhiteSpace(entry.Label) ? "null" : $"\"{entry.Label}\"")},");
             sb.AppendLine("       BusMappings = new Dictionary<object, IValueBusEndpointMapping>");
             sb.AppendLine("       {");
-            sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\") {{ Communication = {commFlags} }},");
+            sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\", \"{entry.Dpt}\") {{ Communication = {commFlags} }},");
             if (addOpenHabInitializationMapping)
                 sb.AppendLine($"            [OpenHab.OpenHabBusEndpointMapping.BusId] = new OpenHab.OpenHabBusEndpointMapping(\"{openHabItemName}\") {{ Communication = BusCommunication.Initialize }},");
             sb.AppendLine("       }");

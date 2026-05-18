@@ -8,7 +8,7 @@ namespace SRF.Knx.Core;
 /// Group Address (GA) in the KNX network
 /// Represents only the address itself, without value or configuration metadata
 /// </summary>
-public class GroupAddress : BusAddress, IEquatable<string>
+public class GroupAddress : BusAddress, IEquatable<GroupAddress>, IEquatable<string>
 {
     [XmlIgnore]
     [JsonIgnore]

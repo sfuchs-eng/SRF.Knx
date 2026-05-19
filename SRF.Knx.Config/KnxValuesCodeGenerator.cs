@@ -30,7 +30,9 @@ public static class KnxValuesCodeGenerator
         sb.AppendLine("#nullable enable");
         sb.AppendLine("using System.Collections.Generic;");
         sb.AppendLine("using HomeCompanion.Values;");
+        sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         sb.AppendLine("using Microsoft.Extensions.Logging;");
+        sb.AppendLine("using SRF.Knx.Core;");
         sb.AppendLine();
         sb.AppendLine("namespace HomeCompanion.Integrations.Knx;");
         sb.AppendLine();
@@ -70,7 +72,7 @@ public static class KnxValuesCodeGenerator
             sb.AppendLine($"       Label = {(string.IsNullOrWhiteSpace(entry.Label) ? "null" : $"\"{entry.Label}\"")},");
             sb.AppendLine("       BusMappings = new Dictionary<object, IValueBusEndpointMapping>");
             sb.AppendLine("       {");
-            sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\", \"{entry.Dpt}\") {{ Communication = {commFlags} }},");
+            sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\", \"{entry.Dpt}\", dptFactory) {{ Communication = {commFlags} }},");
             if (addOpenHabInitializationMapping)
                 sb.AppendLine($"            [OpenHab.OpenHabBusEndpointMapping.BusId] = new OpenHab.OpenHabBusEndpointMapping(\"{openHabItemName}\") {{ Communication = BusCommunication.Initialize }},");
             sb.AppendLine("       }");

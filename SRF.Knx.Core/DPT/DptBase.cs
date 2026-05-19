@@ -26,8 +26,35 @@ public abstract class DptBase
         language ??= System.Globalization.CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
         formatProvider ??= System.Globalization.CultureInfo.CurrentCulture;
         var value = ToValue(groupValue);
-        //TODO: use the knx master data to format the value according to the language and format provider,
-        //including enum values, date and time formats, units, etc.
-        return Convert.ToString(value, formatProvider) ?? string.Empty;
+
+        if (value is null)
+            return string.Empty;
+
+        string formatted = value switch
+        {
+            DateTime dt => dt.ToString(formatProvider),
+            DateTimeOffset dto => dto.ToString(formatProvider),
+            DateOnly dateOnly => dateOnly.ToString(null, formatProvider),
+            TimeOnly timeOnly => timeOnly.ToString(null, formatProvider),
+            TimeSpan span => span.ToString(),
+            byte[] bytes => Convert.ToHexString(bytes),
+            IFormattable formattable => formattable.ToString(null, formatProvider),
+            _ => Convert.ToString(value, formatProvider) ?? string.Empty,
+        };
+
+        if (this is DptSimple { NumericInfo.Unit.Length: > 0 } simple && IsNumericValue(value))
+            return string.Concat(formatted, " ", simple.NumericInfo!.Unit);
+
+        return formatted;
+    }
+
+    private static bool IsNumericValue(object value)
+    {
+        return value is byte or sbyte
+            or short or ushort
+            or int or uint
+            or long or ulong
+            or float or double
+            or decimal;
     }
 }

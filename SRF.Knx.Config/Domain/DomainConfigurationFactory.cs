@@ -11,7 +11,7 @@ using SRF.Knx.Core;
 namespace SRF.Knx.Config.Domain;
 
 public class DomainConfigurationFactory(
-    IOptionsMonitor<KnxConfiguration> knxOptions,
+    IOptionsMonitor<KnxSystemConfigOptions> knxOptions,
     TimeProvider timeProvider,
     ILogger<DomainConfigurationFactory> logger
 ) : IDomainConfigurationFactory

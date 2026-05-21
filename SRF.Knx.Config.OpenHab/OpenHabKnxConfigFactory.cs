@@ -25,7 +25,7 @@ namespace SRF.Knx.Config.OpenHab;
 /// </summary>
 public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
 {
-    private readonly KnxConfiguration knxConfig;
+    private readonly KnxSystemConfigOptions knxConfig;
     private readonly ILogger<OpenHabKnxConfigFactory> logger;
     private readonly IDomainConfigurationFactory domainConfigurationFactory;
     private readonly ILoggerFactory loggerFactory;
@@ -46,7 +46,7 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
     private readonly JsonSerializerOptions jsonSerializerOptions;
 
     public OpenHabKnxConfigFactory(
-        IOptions<KnxConfiguration> knxConfigOptions,
+        IOptions<KnxSystemConfigOptions> knxConfigOptions,
         IDomainConfigurationFactory domainConfigurationFactory,
         IDptFactory dptFactory,
         ILoggerFactory loggerFactory,

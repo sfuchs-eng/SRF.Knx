@@ -4,9 +4,9 @@ using SRF.Knx.Core.Master;
 namespace SRF.Knx.Config;
 
 /// <summary>
-/// Loads KNX master data from the folder configured in <see cref="KnxConfiguration.KnxMasterFolder"/>.
+/// Loads KNX master data from the folder configured in <see cref="KnxSystemConfigOptions.KnxMasterFolder"/>.
 /// </summary>
-public sealed class KnxMasterDataProvider(IOptions<KnxConfiguration> options) : SRF.Knx.Core.Master.KnxMasterDataProvider
+public sealed class KnxMasterDataProvider(IOptions<KnxSystemConfigOptions> options) : SRF.Knx.Core.Master.KnxMasterDataProvider
 {
     private KnxMasterData? _cache;
 

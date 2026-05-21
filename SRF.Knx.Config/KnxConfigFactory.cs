@@ -13,12 +13,12 @@ namespace SRF.Knx.Config;
 /// Creates, transforms and manages KNX related configuration objects.<br/>
 /// - Loads ETS KNX Group Address export files loaded into <see cref="SRF.Knx.Config.ETS5.EtsGroupAddressConfig"/><br/>
 /// - Loads existing <see cref="DomainConfiguration"/> or derives new items from the ETS export<br/>
-/// The base configuration <see cref="KnxConfiguration"/> is expected to be loaded via <see cref="Microsoft.Extensions.Options"/>.<br/>
+/// <see cref="KnxSystemConfigOptions"/> is expected to be loaded via <see cref="Microsoft.Extensions.Options"/>.<br/>
 /// Get methods use in-memory cached configurations objects once loaded upon the first invocation.<br/>
 /// <br/>If only the <see cref="DomainConfiguration"/> is needed, get a singleton directly via dependency injection instead of using the class at hand.
 /// </summary>
 public class KnxConfigFactory(
-    IOptionsMonitor<KnxConfiguration> options,
+    IOptionsMonitor<KnxSystemConfigOptions> options,
     DomainConfiguration domainConfiguration,
     TimeProvider timeProvider,
     ILogger<KnxConfigFactory> logger,
@@ -27,10 +27,10 @@ public class KnxConfigFactory(
     ILabelToNameConverter labelToNameConverter
 ) : IKnxConfigFactory
 {
-    private readonly IOptionsMonitor<KnxConfiguration> options = options;
+    private readonly IOptionsMonitor<KnxSystemConfigOptions> options = options;
     private readonly DomainConfiguration domainConfiguration = domainConfiguration;
     private readonly TimeProvider timeProvider = timeProvider;
-    private KnxConfiguration Config { get => options.CurrentValue; }
+    private KnxSystemConfigOptions Config { get => options.CurrentValue; }
     private readonly ILogger<KnxConfigFactory> logger = logger;
     private readonly ILoggerFactory loggerFactory = loggerFactory;
     private readonly IServiceProvider serviceProvider = serviceProvider;

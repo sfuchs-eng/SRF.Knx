@@ -30,11 +30,13 @@ public static class KnxValuesCodeGenerator
         sb.AppendLine("#nullable enable");
         sb.AppendLine("using System.Collections.Generic;");
         sb.AppendLine("using HomeCompanion.Values;");
+        sb.AppendLine("using HomeCompanion.Integrations.Knx;");
+        sb.AppendLine("using HomeCompanion.Integrations.OpenHab;");
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         sb.AppendLine("using Microsoft.Extensions.Logging;");
         sb.AppendLine("using SRF.Knx.Core;");
         sb.AppendLine();
-        sb.AppendLine("namespace HomeCompanion.Integrations.Knx;");
+        sb.AppendLine("namespace HomeCompanion.Local.Values;");
         sb.AppendLine();
         sb.AppendLine("partial class KnxValues");
         sb.AppendLine("{");
@@ -74,7 +76,7 @@ public static class KnxValuesCodeGenerator
             sb.AppendLine("       {");
             sb.AppendLine($"            [KnxBusEndpointMapping.BusId] = new KnxBusEndpointMapping(\"{address}\", \"{entry.Dpt}\", dptFactory) {{ Communication = {commFlags} }},");
             if (addOpenHabInitializationMapping)
-                sb.AppendLine($"            [OpenHab.OpenHabBusEndpointMapping.BusId] = new OpenHab.OpenHabBusEndpointMapping(\"{openHabItemName}\") {{ Communication = BusCommunication.Initialize }},");
+                sb.AppendLine($"            [OpenHabBusEndpointMapping.BusId] = new OpenHabBusEndpointMapping(\"{openHabItemName}\") {{ Communication = BusCommunication.Initialize }},");
             sb.AppendLine("       }");
             sb.AppendLine("    };");
             sb.AppendLine();

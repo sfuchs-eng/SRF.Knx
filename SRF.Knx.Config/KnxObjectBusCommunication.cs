@@ -1,5 +1,9 @@
+using System.Text.Json.Serialization;
+using HomeCompanion.Abstractions.Serialization;
+
 namespace SRF.Knx.Config;
 
+[JsonConverter(typeof(CommaSeparatedFlagsEnumJsonConverter<KnxObjectBusCommunication>))]
 [Flags]
 public enum KnxObjectBusCommunication
 {

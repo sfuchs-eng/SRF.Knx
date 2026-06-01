@@ -1,10 +1,10 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
+using HomeCompanion.Abstractions.Serialization;
 
 namespace SRF.Knx.Config.Domain;
 
+[JsonConverter(typeof(CommaSeparatedFlagsEnumJsonConverter<ExtraConfigStatus>))]
 [Flags]
-[JsonConverter(typeof(ExtraConfigStatusJsonConverter))]
 public enum ExtraConfigStatus
 {
     /// <summary>
@@ -31,22 +31,4 @@ public enum ExtraConfigStatus
     /// Automated changes were applied
     /// </summary>
     Changed = 1 << 4,
-}
-
-public class ExtraConfigStatusJsonConverter : JsonConverter<ExtraConfigStatus>
-{
-    public override ExtraConfigStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var str = reader.GetString();
-        var tok = str?.Split(",").Select(s => s.Trim()) ?? [];
-        return tok.Select(t => Enum.Parse<ExtraConfigStatus>(t))
-            .Aggregate((a, b) => a | b);
-    }
-
-    public override void Write(Utf8JsonWriter writer, ExtraConfigStatus value, JsonSerializerOptions options)
-    {
-        var allFlags = Enum.GetValues<ExtraConfigStatus>();
-        var setFlags = allFlags.Where(f => value.HasFlag(f));
-        writer.WriteStringValue(string.Join(", ", setFlags));
-    }
 }

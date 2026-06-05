@@ -66,6 +66,7 @@ public class DptNumericInfoFactory(ILogger<DptNumericInfoFactory> logger) : IDpt
             Unit = numericFormat.UnitSpecified ? numericFormat.Unit : string.Empty,
             MaxValue = maxValue,
             MinValue = minValue,
+            Coefficient = numericFormat.CoefficientSpecified ? numericFormat.Coefficient : (double?)null
         };
 
         return numericInfo;

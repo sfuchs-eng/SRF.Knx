@@ -20,4 +20,5 @@ public interface IDptFactory
 {
     DptBase Get(int main, int sub);
     DptBase Get(DataPointTypeId dpstId);
+    DptBase Get(string dptId);
 }

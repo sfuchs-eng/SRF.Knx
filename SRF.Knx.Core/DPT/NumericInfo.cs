@@ -12,4 +12,10 @@ public class NumericInfo
     public required Type Type { get; init; }
 
     public string Unit { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Bus raw value * coefficient = physical value for display and application logic.
+    /// </summary>
+    /// <value></value>
+    public double? Coefficient { get; set; }
 }

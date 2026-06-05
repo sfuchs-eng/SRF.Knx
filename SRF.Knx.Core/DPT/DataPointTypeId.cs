@@ -178,4 +178,29 @@ public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<Da
     {
         return new();
     }
+
+    /// <summary>
+    /// Tries to parse a string representation of a DPT ID into a <see cref="DataPointTypeId"/> instance.
+    /// Accepts formats like "1.001", "DPT-1", "DPST-1-1", or just "1" (main only).
+    /// Returns true if parsing was successful, false otherwise. The out parameter contains the parsed <see cref="DataPointTypeId"/> if successful, or an invalid instance if parsing failed.
+    /// This method is useful for safely parsing DPT IDs from user input or configuration without throwing exceptions on invalid formats.
+    /// </summary>
+    /// <param name="dpstId">The string representation of the DPT ID to parse.</param>
+    /// <param name="result">The output parameter that will contain the parsed <see cref="DataPointTypeId"/> if parsing is successful, or an invalid instance if parsing fails.</param>
+    /// <returns>True if parsing was successful, false otherwise.</returns>
+    public static bool TryParse(string dpstId, out DataPointTypeId result)
+    {
+        result = CreateInvalid();
+        if (string.IsNullOrEmpty(dpstId))
+            return false;
+        try
+        {
+            result = new DataPointTypeId(dpstId);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

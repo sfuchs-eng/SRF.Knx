@@ -27,6 +27,17 @@ public class DptFactory(
         return Get(new DataPointTypeId(main, sub));
     }
 
+    public DptBase Get(string dptId)
+    {
+        if ( string.IsNullOrWhiteSpace(dptId) )
+            throw new ArgumentException("DPT ID cannot be null or whitespace.", nameof(dptId));
+
+        if ( !DataPointTypeId.TryParse(dptId, out var dpstId) )
+            throw new ArgumentException($"Invalid DPT ID format: {dptId}. Expected format is 'main.sub' (e.g., '1.001').", nameof(dptId));
+
+        return Get(dpstId);
+    }
+
     public virtual DptBase Get(DataPointTypeId dpstId)
     {
         /* not relevant

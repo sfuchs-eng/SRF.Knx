@@ -25,4 +25,10 @@ public class DptMemoryCache(IDptFactory dptFactory) : IDptFactory
             return dpt;
         }
     }
+
+    public DptBase Get(string dptId)
+    {
+        var dpstId = new DataPointTypeId(dptId);
+        return Get(dpstId);
+    }
 }

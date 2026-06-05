@@ -24,7 +24,8 @@ public class KnxConfigFactory(
     ILogger<KnxConfigFactory> logger,
     ILoggerFactory loggerFactory,
     IServiceProvider serviceProvider,
-    ILabelToNameConverter labelToNameConverter
+    ILabelToNameConverter labelToNameConverter,
+    IDptFactory dptFactory
 ) : IKnxConfigFactory
 {
     private readonly IOptionsMonitor<KnxSystemConfigOptions> options = options;
@@ -35,7 +36,7 @@ public class KnxConfigFactory(
     private readonly ILoggerFactory loggerFactory = loggerFactory;
     private readonly IServiceProvider serviceProvider = serviceProvider;
     private readonly ILabelToNameConverter labelToNameConverter = labelToNameConverter;
-
+    private readonly IDptFactory dptFactory = dptFactory;
     /// <summary>
     /// Consider injecting <see cref="DomainConfiguration"/> directly.
     /// </summary>
@@ -113,7 +114,7 @@ public class KnxConfigFactory(
     {
         var entries = GenerateHomeCompanionAutoGen(config);
         postProcessEntries?.Invoke(entries);
-        return KnxValuesCodeGenerator.Generate(entries);
+        return KnxValuesCodeGenerator.Generate(entries, dptFactory, loggerFactory);
     }
 
     public DomainConfiguration CreateDomainConfigFromEtsExport()

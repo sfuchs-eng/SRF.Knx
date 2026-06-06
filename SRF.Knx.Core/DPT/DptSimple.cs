@@ -33,12 +33,18 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
             // If a coefficient is defined and the value is numeric, apply the coefficient before encoding
             double doubleValue = valueConvertible.ToDouble(System.Globalization.CultureInfo.InvariantCulture);
             doubleValue /= NumericInfo?.Coefficient ?? 1.0;
+            // ensure a round trip safe converstion by appropriate rounding, e.g. fom 0...100% double to byte for DPT 5.x.001, where the coefficient is 100/255, so we round to the nearest multiple of 100/255 to avoid ending up with a value that is outside of the valid range for the DPT after encoding and decoding again.
+            // make it generic though, such that e.g. 0..360°deg mapped to 0..255 for DPT 5.004 with a coefficient of 360/255 also gets rounded to the nearest multiple of 360/255 to ensure a round trip safe conversion.
+            // We do this anyhow even though only needed for scaled DPTs with a numeric type that has a smaller range than double.
+            // But floating point targets are not common for scaled DPTs, and if they are used, they likely have a coefficient of 1.0, so the rounding will not have any effect in that case, but it will also not cause any harm, so we can just apply this rounding for all scaled numerics for simplicity.
+            double step = NumericInfo?.Coefficient ?? 1.0;
+            doubleValue = Math.Round(doubleValue / step) * step;
             object scaledValue = TypeConversionUtils.ClampToRange(doubleValue, typeof(T));
             return Encode((T)scaledValue);
         }
         else
         {
-            return Encode((T)value);
+            return Encode((T)value); //TODO: DPST-5-4 must be native double instead of byte or int32 - fix it.
         }
     }
 

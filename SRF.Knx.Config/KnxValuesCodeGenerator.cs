@@ -147,11 +147,12 @@ public static class KnxValuesCodeGenerator
             _ => main >= 20 && main <= 29 ? "byte" : "byte[]"
         };
 
-        if ( dpt is DptSimple dptSimple && dptSimple.IsNumeric && dptSimple.NumericInfo?.Coefficient != 1.0 )
+        if ( dpt.IsScaledNumeric )
         {
             // If a coefficient is defined for a numeric DPT, use double for all types except double and decimal to reflect the fact that the value range and precision of the generated properties will be different from the underlying DPT value type due to the scaling.
-            if ( nativeType != "double" && nativeType != "decimal" )
-                return "double";
+            //if ( nativeType != "decimal" )
+            //    return "double";
+            return dpt.ApplicationType.Name;
         }
         return nativeType;
     }

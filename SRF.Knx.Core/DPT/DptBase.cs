@@ -15,7 +15,19 @@ public abstract class DptBase
 
     public abstract GroupValue ToGroupValue(object value);
 
+    /// <summary>
+    /// .NET type of the value represented by this DPT in KNX telegrams, e.g. bool for DPT 1.001, byte for DPT 5.001, etc.
+    /// </summary>
     public abstract Type ValueType { get; }
+
+    /// <summary>
+    /// .NET type of the value used in the application for this DPT, e.g. bool for DPT 1.001, double for DPT 5.001 (scaled), etc.
+    /// </summary>
+    public virtual Type ApplicationType => ValueType;
+
+    public virtual bool IsNumeric => false;
+
+    public virtual bool IsScaledNumeric => false;
 
     public virtual string Format(
         GroupValue groupValue,

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace SRF.Knx.Core.DPT;
 
 public class NumericInfo
@@ -18,4 +20,7 @@ public class NumericInfo
     /// </summary>
     /// <value></value>
     public double? Coefficient { get; set; }
+
+    [JsonIgnore]
+    public bool IsScaled => Coefficient != null && !(1.0).Equals(Coefficient.Value);
 }

@@ -33,7 +33,7 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
             // If a coefficient is defined and the value is numeric, apply the coefficient before encoding
             double doubleValue = valueConvertible.ToDouble(System.Globalization.CultureInfo.InvariantCulture);
             doubleValue /= NumericInfo?.Coefficient ?? 1.0;
-            object scaledValue = Convert.ChangeType(doubleValue, typeof(T), System.Globalization.CultureInfo.InvariantCulture) ?? throw new InvalidOperationException($"Failed to convert scaled value of DPT {Id} back to type {typeof(T).Name}");
+            object scaledValue = TypeConversionUtils.ClampToRange(doubleValue, typeof(T));
             return Encode((T)scaledValue);
         }
         else
@@ -59,7 +59,14 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
                 Type t when t == typeof(decimal) => typeof(decimal),
                 _ => typeof(double)
             };
-            return Convert.ChangeType(doubleValue, returnType, System.Globalization.CultureInfo.InvariantCulture) ?? throw new InvalidOperationException($"Failed to convert scaled value of DPT {Id} to type {returnType.Name}, while group address native is type {typeof(T).Name}");
+            try
+            {
+                return Convert.ChangeType(doubleValue, returnType, System.Globalization.CultureInfo.InvariantCulture) ?? throw new InvalidOperationException($"Failed to convert scaled value of DPT {Id} to type {returnType.Name}, while group address native is type {typeof(T).Name}");
+            }
+            catch (Exception)
+            {
+            }
+            return TypeConversionUtils.ClampToRange(doubleValue, returnType);
         }
         return value ?? throw new InvalidOperationException($"got null value for DPT {Id}");
     }

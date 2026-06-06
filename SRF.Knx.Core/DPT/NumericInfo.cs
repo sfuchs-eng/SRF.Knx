@@ -22,5 +22,5 @@ public class NumericInfo
     public double? Coefficient { get; set; }
 
     [JsonIgnore]
-    public bool IsScaled => Coefficient != null && !(1.0).Equals(Coefficient.Value);
+    public bool IsScaled => Coefficient != null && !(1.0).Equals(Coefficient.Value) && !0.0.Equals(Coefficient.Value);
 }

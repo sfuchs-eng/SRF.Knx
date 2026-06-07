@@ -43,6 +43,47 @@ public class PdtEncoderFactoryTests
         Assert.That(encoder.Type, Is.EqualTo(typeof(byte)));
     }
 
+    /// <summary>
+    /// Is there a PDT type in master data that does not have a corresponding encoder implemented in the factory?
+    /// This test ensures that the factory properly throws a NotSupportedException for unsupported PDTs, and that all PDTs defined in the master data have an associated encoder implementation in the factory.
+    /// </summary>
+    [Test]
+    public void GetPdtEncoder_AllMasterDataPdtsHaveEncoders()
+    {
+        if ( !KnxMasterDataUtils.TryGetKnxMasterData(out var filename, out var masterData, out var provider) )
+        {
+            Assert.Fail("knx_master.xml file not found. Ensure that the file exists at the expected path relative to the test assembly: " + filename);
+        }
+
+        // Arrange
+        var allPdts = masterData.MasterData?.PropertyDataTypes?.Items.Select(p => p.Value).ToList() ?? [];
+
+        foreach (var pdt in allPdts)
+        {
+            // Act & Assert
+            try
+            {
+                var encoder = _factory.GetPdtEncoder(pdt);
+                Assert.That(encoder, Is.Not.Null, $"No encoder returned for PDT {pdt.Number}");
+            }
+            catch (NotSupportedException ex)
+            {
+                Assert.Fail($"No encoder found for PDT {pdt.Number}: {ex.Message}");
+            }
+        }
+    }
+
+    private class KnxMasterDataProviderStub(string filename) : KnxMasterDataProvider()
+    {
+        private readonly string filename = filename;
+        KnxMasterData? _masterData = null;
+
+        public override KnxMasterData GetMasterData()
+        {
+            return _masterData ??= KnxMasterDataLoader.LoadFromFile(filename);
+        }
+    }
+
     [Test]
     public void GetPdtEncoder_WithUnsupportedPdt_ThrowsNotSupportedException()
     {

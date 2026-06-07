@@ -38,7 +38,10 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
             // We do this anyhow even though only needed for scaled DPTs with a numeric type that has a smaller range than double.
             // But floating point targets are not common for scaled DPTs, and if they are used, they likely have a coefficient of 1.0, so the rounding will not have any effect in that case, but it will also not cause any harm, so we can just apply this rounding for all scaled numerics for simplicity.
             double step = NumericInfo?.Coefficient ?? 1.0;
-            doubleValue = Math.Round(doubleValue / step) * step;
+            if ( !1.0.Equals(step))
+            {
+                doubleValue = Math.Round(doubleValue / step) * step + 0.5;
+            }
             object scaledValue = TypeConversionUtils.ClampToRange(doubleValue, typeof(T));
             return Encode((T)scaledValue);
         }

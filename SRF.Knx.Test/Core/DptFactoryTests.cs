@@ -18,14 +18,10 @@ public class DptFactoryTests
     [SetUp]
     public void Setup()
     {
-        var baseDir = Path.GetDirectoryName(typeof(DptFactoryTests).Assembly.Location) ?? "";
-        var knxMasterFilePath = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "SRF.Knx.Config", "Resources", "knx_master.xml"));
-
-        if (!File.Exists(knxMasterFilePath))
-            Assert.Fail($"knx_master.xml not found at: {knxMasterFilePath}");
-
-        var masterData = KnxMasterDataLoader.LoadFromFile(knxMasterFilePath);
-        var provider = new KnxMasterDataProviderStub(masterData);
+        if (!KnxMasterDataUtils.TryGetKnxMasterData(out var filename, out var masterData, out var provider))
+        {
+            Assert.Fail("knx_master.xml file not found. Ensure that the file exists at the expected path relative to the test assembly: " + filename);
+        }
 
         _factory = new DptFactory(
             provider,
@@ -149,10 +145,5 @@ public class DptFactoryTests
 
         Assert.That(decoded, Is.TypeOf<byte>());
         Assert.That(decoded, Is.EqualTo((byte)0x3F));
-    }
-
-    private sealed class KnxMasterDataProviderStub(KnxMasterData masterData) : IKnxMasterDataProvider
-    {
-        public KnxMasterData GetMasterData() => masterData;
     }
 }

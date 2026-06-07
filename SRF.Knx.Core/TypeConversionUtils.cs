@@ -27,6 +27,12 @@ public static class TypeConversionUtils
     public static object ClampToRange<Tin>(Tin value, Type targetType) 
         where Tin : INumber<Tin>
     {
+        if (targetType == typeof(double))
+            return ClampToRange<Tin, double>(value);
+        if (targetType == typeof(float))
+            return ClampToRange<Tin, float>(value);
+        if (targetType == typeof(decimal))
+            return ClampToRange<Tin, decimal>(value);
         if (targetType == typeof(byte))
             return ClampToRange<Tin, byte>(value);
         if (targetType == typeof(sbyte))
@@ -43,12 +49,6 @@ public static class TypeConversionUtils
             return ClampToRange<Tin, long>(value);
         if (targetType == typeof(ulong))
             return ClampToRange<Tin, ulong>(value);
-        if (targetType == typeof(float))
-            return ClampToRange<Tin, float>(value);
-        if (targetType == typeof(double))
-            return ClampToRange<Tin, double>(value);
-        if (targetType == typeof(decimal))
-            return ClampToRange<Tin, decimal>(value);
 
         throw new NotSupportedException($"Clamping to the specified target type {targetType.Name} is not supported.");
     }

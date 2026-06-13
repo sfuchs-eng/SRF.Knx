@@ -25,13 +25,76 @@ public class Item<TBridge, TThing,TChannel>(TBridge bridge, TThing thing, TChann
         return configElement != null && configElement.Any(c => !string.IsNullOrEmpty(c));
     }
 
-    protected virtual string GetChannelConfig() {
-        return $"{{ channel=\"{BindingId}:device:{BridgeName}:{Thing.Config.Name}:{Channel.ChannelID}\" }}";
+    protected virtual string GetChannelConfig(string? unitToken = null)
+    {
+        unitToken = !string.IsNullOrEmpty(unitToken) ? $", {unitToken}" : string.Empty;
+        return $"{{ channel=\"{BindingId}:device:{BridgeName}:{Thing.Config.Name}:{Channel.ChannelID}\"{unitToken} }}";
+    }
+
+    /// <summary>
+    /// For which Dimenions OpenHAB's unit system shall NOT be used.
+    /// </summary>
+    /// <remarks>
+    /// The "AccordingDpt" dimension is supposed to be resolved at this point, but in case it isn't, we should not apply unit system transformations.
+    /// The "Dimensionless" dimension is explicitly unitless and should not be transformed either.
+    /// Other dimensions that might be unitless or have non-standard units could be added here as needed.
+    /// </remarks>
+    readonly HashSet<DptMapping.OpenHabDimension> unitSystemExemptDimensions = [
+        DptMapping.OpenHabDimension.Dimensionless,
+        DptMapping.OpenHabDimension.AccordingDpt
+    ];
+
+    /// <summary>
+    /// Translate from KNX units to OpenHAB units for Number items.
+    /// Some units do not match 1:1. Put those into this dictionary.
+    /// If a unit is not in the dictionary, it is assumed that it can be used as-is.
+    /// </summary>
+    readonly Dictionary<string, string> unitSystemTransformUnit = new()
+    {
+        { "Lux", "lx" },
+        { "Percentage", "%" },
+    };
+
+    bool ProduceUnitSystemTokens(out string itemTypeSuffix, out string itemChannelLinkUnitTag)
+    {
+        itemTypeSuffix = string.Empty;
+        itemChannelLinkUnitTag = string.Empty;
+
+        if (!"Number".Equals(Config.ItemType, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var dimension = Channel.Config.Channel.Dimension;
+        if (dimension == null || unitSystemExemptDimensions.Contains(dimension.Value))
+            return false;
+
+        itemTypeSuffix = $":{dimension.Value}";
+
+        var knxUnit = Channel.Config.Channel.KnxUnit;
+        if ( string.IsNullOrEmpty(knxUnit))
+            return false;
+
+        if ( unitSystemTransformUnit.TryGetValue(knxUnit, out var transformedUnit))
+        {
+            itemChannelLinkUnitTag = transformedUnit;
+        }
+        else
+        {
+            itemChannelLinkUnitTag = knxUnit;
+        }
+        return true;
     }
 
     public virtual void WriteConfig(TextWriter to)
     {
         var itemType = Config.ItemType ?? throw new KnxConfigurationException($"{Config.Address}: OpenHAB item type needs to be defined.");
+        var dimension = Channel.Config.Channel.Dimension;
+        var exemptDimensions = new HashSet<DptMapping.OpenHabDimension> { DptMapping.OpenHabDimension.Dimensionless, DptMapping.OpenHabDimension.AccordingDpt };
+        var useUnitSystem = ProduceUnitSystemTokens(out var itemTypeSuffix, out var itemChannelLinkUnitTag);
+        // Append Dimension for numeric types?
+        if (useUnitSystem)
+        {
+            itemType += itemTypeSuffix;
+        }
         var itemName = Config.Name;
         var label = Config.Label;
         var iconTag = !string.IsNullOrEmpty(Config.Icon)
@@ -40,6 +103,6 @@ public class Item<TBridge, TThing,TChannel>(TBridge bridge, TThing thing, TChann
         var groupTag = HasContent(Config.Groups)
             ? $" ({string.Join(", ", Config.Groups)})"
             : "";
-        to.WriteLine($"{itemType} {itemName} \"{label}\"{iconTag} {groupTag} {GetChannelConfig()}");
+        to.WriteLine($"{itemType} {itemName} \"{label}\"{iconTag} {groupTag} {GetChannelConfig(useUnitSystem ? itemChannelLinkUnitTag : null)}");
     }
 }

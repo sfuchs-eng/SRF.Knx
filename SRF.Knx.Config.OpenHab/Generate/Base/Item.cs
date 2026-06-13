@@ -27,7 +27,7 @@ public class Item<TBridge, TThing,TChannel>(TBridge bridge, TThing thing, TChann
 
     protected virtual string GetChannelConfig(string? unitToken = null)
     {
-        unitToken = !string.IsNullOrEmpty(unitToken) ? $", {unitToken}" : string.Empty;
+        unitToken = !string.IsNullOrEmpty(unitToken) ? unitToken : string.Empty;
         return $"{{ channel=\"{BindingId}:device:{BridgeName}:{Thing.Config.Name}:{Channel.ChannelID}\"{unitToken} }}";
     }
 
@@ -73,14 +73,9 @@ public class Item<TBridge, TThing,TChannel>(TBridge bridge, TThing thing, TChann
         if ( string.IsNullOrEmpty(knxUnit))
             return false;
 
-        if ( unitSystemTransformUnit.TryGetValue(knxUnit, out var transformedUnit))
-        {
-            itemChannelLinkUnitTag = transformedUnit;
-        }
-        else
-        {
-            itemChannelLinkUnitTag = knxUnit;
-        }
+        var openHabUnit = unitSystemTransformUnit.TryGetValue(knxUnit, out var transformedUnit) ? transformedUnit : knxUnit;
+        itemChannelLinkUnitTag = $", unit=\"{openHabUnit}\"";
+
         return true;
     }
 

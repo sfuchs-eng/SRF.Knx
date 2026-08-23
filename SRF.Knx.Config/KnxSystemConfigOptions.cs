@@ -33,13 +33,6 @@ public class KnxSystemConfigOptions
     public string KnxDomainConfigFile { get; set; } = "KnxDomainConfig.json";
 
     /// <summary>
-    /// Path where <c>srf-network-cli kc --home-companion-code-gen</c> writes the generated
-    /// <c>KnxValues.generated.cs</c> source file. Set this in your local <c>SRF.Network.json</c>
-    /// to point at the <c>HomeCompanion.Knx/</c> project folder on your machine.
-    /// </summary>
-    public string HomeCompanionCodeGenFile { get; set; } = "KnxValues.generated.cs";
-
-    /// <summary>
     /// Folder containing <c>knx_master.xml</c> distributed with ETS.
     /// </summary>
     public string KnxMasterFolder { get; set; } = Path.Combine(
@@ -52,6 +45,26 @@ public class KnxSystemConfigOptions
     /// <see cref="HomeCompanion.Values.IValue"/> from the linked OpenHAB item state on startup.
     /// </summary>
     public bool LinkKnxValuesToOpenHabForInitialization { get; set; } = true;
+
+    public HomeCompanionOptions HomeCompanion { get; set; } = new();
+
+    public class HomeCompanionOptions
+    {
+        public string GeneratedValuesClassesNamespace { get; set; } = "HomeCompanion.Local.Values";
+
+        public string KnxValuesClassName { get; set; } = "KnxValues";
+        
+        public string KnxValuesCodeGenFilePath { get; set; } = "KnxValues.generated.cs";
+
+        public string OpenHabValuesClassName { get; set; } = "OpenHabValues";
+
+        /// <summary>
+        /// Path where <c>srf-network-cli kc --home-companion-code-gen</c> writes the generated
+        /// <c>OpenHabValues.generated.cs</c> source file. Set this in your local <c>SRF.Network.json</c>
+        /// to point at the <c>HomeCompanion.Local/Values/</c> project folder on your machine.
+        /// </summary>
+        public string OpenHabValuesCodeGenFilePath { get; set; } = "OpenHabValues.generated.cs";
+    }
 
     /// <summary>
     /// OpenHAB configuration generation (Things, Channels, Items) for KNX Group Addresses.

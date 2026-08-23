@@ -20,6 +20,8 @@ public class Item<TBridge, TThing,TChannel>(TBridge bridge, TThing thing, TChann
 
     public OHKnxGroupAddress Config { get; private init; } = channel.Config;
 
+    public string Name => Config.Name ?? throw new KnxConfigurationException($"{Config.Address}: OpenHAB item name needs to be defined.");
+
     public static bool HasContent(string?[]? configElement)
     {
         return configElement != null && configElement.Any(c => !string.IsNullOrEmpty(c));

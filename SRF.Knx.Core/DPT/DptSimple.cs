@@ -47,7 +47,7 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
         }
         else
         {
-            return Encode((T)value); //TODO: DPST-5-4 must be native double instead of byte or int32 - fix it.
+            return Encode((T)value);
         }
     }
 

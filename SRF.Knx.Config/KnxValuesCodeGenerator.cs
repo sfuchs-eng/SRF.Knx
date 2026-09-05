@@ -100,6 +100,12 @@ public static class KnxValuesCodeGenerator
     // DPT → C# type mapping  (stable per KNX specification)
     // -------------------------------------------------------------------------
 
+    private record DptToCSharpTypeMapping(int dptMain, int dptSub, string CSharpType);
+    private static DptToCSharpTypeMapping[]? _dptToCSharpTypeMappingOverrides =
+    [
+        new(5, 4, "double"), // DPST-5-4 (angle) must be native double instead of byte or int32
+    ];
+
     /// <summary>
     /// Maps a DPT main number to the C# value type used in <c>ValueBase&lt;T&gt;</c>.
     /// DPT strings have the form <c>"DPST-X-Y"</c> or <c>"DPT-X"</c>.
@@ -123,6 +129,14 @@ public static class KnxValuesCodeGenerator
             return "byte[]";
         */
         var main = dpt.Id.Main;
+        var sub = dpt.Id.Sub;
+
+        if ( _dptToCSharpTypeMappingOverrides is not null )
+        {
+            var overrideMapping = _dptToCSharpTypeMappingOverrides.FirstOrDefault(m => m.dptMain == main && m.dptSub == sub);
+            if (overrideMapping is not null)
+                return overrideMapping.CSharpType;
+        }
 
         var nativeType = main switch
         {
@@ -130,7 +144,7 @@ public static class KnxValuesCodeGenerator
             2 => "byte",      // 2-bit controlled
             3 => "byte",      // 4-bit dimming
             4 => "char",      // 1-byte character
-            5 => "byte",      // 1-byte unsigned (0–100 %, angles, …)
+            5 => "byte",      // 1-byte unsigned (0–100 %, angles, …), see exceptions & scaling related deviations below
             6 => "sbyte",     // 1-byte signed
             7 => "ushort",    // 2-byte unsigned
             8 => "short",     // 2-byte signed
@@ -143,15 +157,18 @@ public static class KnxValuesCodeGenerator
             16 => "string",   // ISO 8859-1 character string
             17 => "byte",     // Scene number
             18 => "byte",     // Scene control
-            19 => "byte[]",   // Date & time (complex)
+            19 => "byte[]",   // Date & time (complex), TODO: change into a DateTimeOffset type and implement proper encoding/decoding in the DPT implementation
             _ => main >= 20 && main <= 29 ? "byte" : "byte[]"
         };
 
-        if ( dpt.IsScaledNumeric )
+        if (dpt.IsScaledNumeric)
         {
-            // If a coefficient is defined for a numeric DPT, use double for all types except double and decimal to reflect the fact that the value range and precision of the generated properties will be different from the underlying DPT value type due to the scaling.
-            //if ( nativeType != "decimal" )
-            //    return "double";
+            if ( dpt is DptSimple dptSimple && dptSimple.NumericInfo?.Coefficient is not null && dptSimple.NumericInfo.Coefficient != 1.0 )
+            {
+                // If a coefficient is defined for a numeric DPT, use double for all types except double and decimal to reflect the fact that the value range and precision of the generated properties will be different from the underlying DPT value type due to the scaling.
+                if (nativeType != "double" && nativeType != "decimal")
+                    return "double";
+            }
             return dpt.ApplicationType.Name;
         }
         return nativeType;

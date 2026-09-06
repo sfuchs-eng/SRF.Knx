@@ -6,6 +6,8 @@ using Microsoft.Extensions.Options;
 using SRF.Knx.Config.Domain;
 using SRF.Knx.Config.ETS5;
 using SRF.Knx.Core;
+using SRF.Knx.Core.DPT;
+using UnitsNet;
 
 namespace SRF.Knx.Config;
 
@@ -25,7 +27,8 @@ public class KnxConfigFactory(
     ILoggerFactory loggerFactory,
     IServiceProvider serviceProvider,
     ILabelToNameConverter labelToNameConverter,
-    IDptFactory dptFactory
+    IDptFactory dptFactory,
+    IKnxMasterDataProvider knxMasterDataProvider
 ) : IKnxConfigFactory
 {
     private readonly IOptionsMonitor<KnxSystemConfigOptions> options = options;
@@ -37,6 +40,8 @@ public class KnxConfigFactory(
     private readonly IServiceProvider serviceProvider = serviceProvider;
     private readonly ILabelToNameConverter labelToNameConverter = labelToNameConverter;
     private readonly IDptFactory dptFactory = dptFactory;
+    private readonly IKnxMasterDataProvider knxMasterDataProvider = knxMasterDataProvider;
+
     /// <summary>
     /// Consider injecting <see cref="DomainConfiguration"/> directly.
     /// </summary>
@@ -96,7 +101,7 @@ public class KnxConfigFactory(
             if (extra?.HomeCompanion?.InitializeFromKnxBus ?? false)
                 comms |= KnxObjectBusCommunication.Initialize;
 
-            result[address3L] = new HomeCompanionAutoGenEntry
+            var hacge = new HomeCompanionAutoGenEntry
             {
                 PropertyName = name,
                 Label = string.IsNullOrWhiteSpace(gac.Label) ? null : gac.Label,
@@ -105,6 +110,20 @@ public class KnxConfigFactory(
                 Communication = comms,
                 WantsOpenHabInitialization = extra?.HomeCompanion?.InitializeFromOpenHab ?? false,
             };
+            result[address3L] = hacge;
+
+            // does it need to be unit aware? Consult KNX DPT master data for the DPT and check if it has a unit. If so, add the unit to the description.
+            if (gac.DPT is not null)
+            {
+                var dpt = dptFactory.Get(gac.DPT);
+                if (dpt is DptSimple dptSimple && dptSimple.NumericInfo?.Unit is not null)
+                {
+                    var unit = dptSimple.NumericInfo.Unit;
+                    var unitMapping = serviceProvider.GetRequiredService<IUnitSystemsMapper>().GetDptUnitMapping(dptSimple);
+                    hacge.Dimension = unitMapping?.DimensionName ?? unit?.ToString();
+                    hacge.Unit = unitMapping?.UnitName;
+                }
+            }
         }
         return result;
     }

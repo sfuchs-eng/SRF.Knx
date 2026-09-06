@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 using SRF.Knx.Core.DPT;
 
 namespace SRF.Knx.Core;
@@ -21,6 +20,8 @@ public static class ExtensionsHosting
                 ActivatorUtilities.CreateInstance<DptFactory>(sp)
             )
         );
+
+        services.TryAddTransient<IUnitSystemsMapper, UnitSystemsMapper>();
 
         return services;
     }

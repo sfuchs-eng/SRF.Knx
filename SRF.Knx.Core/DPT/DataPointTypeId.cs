@@ -2,13 +2,14 @@ using System.Xml.Serialization;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Schema;
 using System.Xml;
+using SRF.Knx.Core.Master;
 
 namespace SRF.Knx.Core.DPT;
 
 /// <summary>
 /// KNX Data Point Type
 /// </summary>
-public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<DataPointTypeId>, IXmlSerializable
+public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<DataPointTypeId>, IEquatable<DatapointSubtype>, IXmlSerializable
 {
     /// <summary>
     /// Main Type
@@ -202,5 +203,12 @@ public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<Da
         {
             return false;
         }
+    }
+
+    public bool Equals(DatapointSubtype? other)
+    {
+        if (other is null)
+            return false;
+        return Main == other.Number && Sub == other.Number;
     }
 }

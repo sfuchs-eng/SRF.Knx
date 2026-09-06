@@ -74,7 +74,7 @@ public class DptFactory(
             var dptType = typeof(DptSimple<>).MakeGenericType(
                 (genericPdtEncoderType ?? throw new InvalidOperationException($"PDT encoder type {encoderType} does not derive from PdtEncoder<T> for DPST {dpstId}"))
                 .GetGenericArguments()[0]);
-            var dpt = (DptBase)(Activator.CreateInstance(dptType, [dpstId, pdtEncoder, numericInfo!])
+            var dpt = (DptBase)(Activator.CreateInstance(dptType, [dpstId, dptMeta, pdtEncoder, numericInfo!])
                 ?? throw new InvalidOperationException($"Failed to create DPT instance of type {dptType} for DPST {dpstId} using PDT encoder for PDT {dptMeta.Pdt.Name}"));
             return dpt;
         }
@@ -87,7 +87,6 @@ public class DptFactory(
         Func<
             DptMetadata,
             IDptNumericInfoFactory,
-
             DptBase> Creator
         );
 
@@ -104,7 +103,8 @@ public class DptFactory(
                 Id = dptm.Id,
                 Encoder = value => new GroupValue(BitConverter.GetBytes(value)),
                 Decoder = groupValue => BitConverter.ToUInt32(groupValue.Value, 0),
-                NumericInfo = nif.GetNumericInfo(dptm, out var isNumeric)
+                NumericInfo = nif.GetNumericInfo(dptm, out var isNumeric),
+                Metadata = dptm
             })
         },
         */
@@ -123,7 +123,8 @@ public class DptFactory(
                 Id = dptm.Id,
                 Encoder = value => new GroupValue(BitConverter.GetBytes(value)),
                 Decoder = groupValue => BitConverter.ToUInt32(groupValue.Value, 0),
-                NumericInfo = nif.GetNumericInfo(dptm, out var isNumeric)
+                NumericInfo = nif.GetNumericInfo(dptm, out var isNumeric),
+                Metadata = dptm
             })
         },
         */

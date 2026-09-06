@@ -11,6 +11,11 @@ public abstract class DptBase
 {
     public required DataPointTypeId Id { get; init; }
 
+    /// <summary>
+    /// KNX master data for this DPT
+    /// </summary>
+    public required DptMetadata Metadata { get; init; }
+
     public abstract object ToValue(GroupValue groupValue);
 
     public abstract GroupValue ToGroupValue(object value);
@@ -28,6 +33,12 @@ public abstract class DptBase
     public virtual bool IsNumeric => false;
 
     public virtual bool IsScaledNumeric => false;
+
+    public DptBase(DataPointTypeId id, DptMetadata dptMetadata)
+    {
+        Id = id;
+        Metadata = dptMetadata;
+    }
 
     public virtual string Format(
         GroupValue groupValue,

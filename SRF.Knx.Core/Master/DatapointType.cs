@@ -32,7 +32,7 @@ public class DatapointType
     public bool DefaultSpecified { get; set; }
 
     [XmlElement("DatapointSubtypes")]
-    public DatapointSubtypes? DatapointSubtypes { get; set; }
+    public DatapointSubtypes DatapointSubtypes { get; set; } = new();
 }
 
 /// <summary>

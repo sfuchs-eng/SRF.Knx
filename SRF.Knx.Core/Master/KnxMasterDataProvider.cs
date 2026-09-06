@@ -1,3 +1,5 @@
+using SRF.Knx.Core.DPT;
+
 namespace SRF.Knx.Core.Master;
 
 /// <summary>
@@ -18,5 +20,20 @@ public abstract class KnxMasterDataProvider : IKnxMasterDataProvider
     public KnxMasterData GetMasterDataFromFile(string filePath)
     {
         return KnxMasterDataLoader.LoadFromFile(filePath);
+    }
+
+    public bool TryGetDptMaster(DataPointTypeId dptId, out DatapointType? dpt, out DatapointSubtype? dptSubtype)
+    {
+        var master = GetMasterData();
+        var mdpt = master.MasterData?.DatapointTypes?.Items.FirstOrDefault(d => d.Equals(dptId));
+        if (mdpt is not null)
+        {
+            dpt = mdpt.Value.Value;
+            dptSubtype = dpt.DatapointSubtypes.DatapointSubtype.FirstOrDefault(s => dptId.Equals(s));
+            return true;
+        }
+        dpt = null;
+        dptSubtype = null;
+        return false;
     }
 }

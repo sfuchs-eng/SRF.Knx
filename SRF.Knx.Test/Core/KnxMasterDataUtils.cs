@@ -1,4 +1,5 @@
 using SRF.Knx.Core;
+using SRF.Knx.Core.DPT;
 using SRF.Knx.Core.Master;
 
 namespace SRF.Knx.Test.Core;
@@ -26,5 +27,10 @@ public static class KnxMasterDataUtils
     private sealed class KnxMasterDataProviderStub(KnxMasterData masterData) : IKnxMasterDataProvider
     {
         public KnxMasterData GetMasterData() => masterData;
+
+        public bool TryGetDptMaster(DataPointTypeId dptId, out DatapointType? dpt, out DatapointSubtype? dptSubtype)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

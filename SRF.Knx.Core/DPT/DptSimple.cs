@@ -1,6 +1,6 @@
 namespace SRF.Knx.Core.DPT;
 
-public abstract class DptSimple : DptBase
+public abstract class DptSimple(DataPointTypeId id, DptMetadata dptMetadata) : DptBase(id, dptMetadata)
 {
     public override bool IsNumeric { get => NumericInfo != null; }
 
@@ -80,13 +80,8 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
         return value ?? throw new InvalidOperationException($"got null value for DPT {Id}");
     }
 
-    public DptSimple() : base()
+    public DptSimple(DataPointTypeId id, DptMetadata dptMetadata, PdtEncoder<T> encoder, NumericInfo? numericInfo = null) : base(id, dptMetadata)
     {
-    }
-
-    public DptSimple(DataPointTypeId id, PdtEncoder<T> encoder, NumericInfo? numericInfo = null)
-    {
-        Id = id;
         Encoder = encoder.Encoder;
         Decoder = encoder.Decoder;
         NumericInfo = numericInfo;

@@ -54,4 +54,13 @@ public class HomeCompanionAutoGenEntry
     /// If both is the case, the <c>IValue</c> gets an additional OpenHab bus mapping making it eligible for OpenHAB state initialization.
     /// </summary>
     public bool IsOpenHabInitialized => OpenHabItemName != null && WantsOpenHabInitialization;
+
+    [JsonIgnore()]
+    public bool IsUnitAware => !string.IsNullOrWhiteSpace(Unit) && !string.IsNullOrWhiteSpace(Dimension);
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Dimension { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Unit { get; set; }
 }

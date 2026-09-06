@@ -1,3 +1,4 @@
+using SRF.Knx.Core.DPT;
 using SRF.Knx.Core.Master;
 
 namespace SRF.Knx.Core;
@@ -10,4 +11,5 @@ public interface IKnxMasterDataProvider
     /// </summary>
     /// <returns>The KNX master data.</returns>
     KnxMasterData GetMasterData();
+    bool TryGetDptMaster(DataPointTypeId dptId, out DatapointType? dpt, out DatapointSubtype? dptSubtype);
 }

@@ -18,6 +18,7 @@ No external KNX SDK dependency — pure .NET 10 with `Microsoft.Extensions.*`.
 | `NumericInfo` | Unit, min, and max metadata for numeric DPTs (e.g. `°C`, `-273 – 670760`) |
 | `IDptFactory` | Resolves a `DptBase` for a given main/sub number using KNX master data |
 | `IKnxMasterDataProvider` | Your app-supplied service that loads the `knx_master.xml` file |
+| `IDptResolver` | Internal service that resolves DPTs from an ETS project GroupAddress configuration (e.g. `1/2/3` → `DPT-9-1`) |
 
 ## Setup
 
@@ -49,7 +50,7 @@ services.AddSingleton<IKnxMasterDataProvider, MyMasterDataProvider>();
 services.AddKnxCore();   // registers IDptFactory, IPdtEncoderFactory, IDptNumericInfoFactory
 ```
 
-`AddKnxCore()` registers all three internal components as singletons:
+`AddKnxCore()` registers all three internal core components as singletons:
 
 | Service | Description |
 |---|---|
@@ -57,9 +58,24 @@ services.AddKnxCore();   // registers IDptFactory, IPdtEncoderFactory, IDptNumer
 | `IPdtEncoderFactory` | Provides raw PDT encoders/decoders (internal use) |
 | `IDptNumericInfoFactory` | Supplies unit and range info per DPT (internal use) |
 
+The following must be registered by the app as singletons:
+
+| Service | Description |
+|---|---|
+| `IKnxMasterDataProvider` | Loads the KNX master XML file (e.g. `knx_master.xml`) |
+| `IDptResolver` | Resolves DPTs from ETS project GroupAddress configuration (e.g. `1/2/3` → `DPT-9-1`) |
+
+Additional services are registered transiently and only if not registered on beforehand by the app:
+
+| Service | Description |
+|---|---|
+| `IUnitSystemsMapper` | Maps KNX DPT units to .NET `UnitSystem` enum values (e.g. `°C` → `UnitSystem.Metric`) |
+
 ## Usage
 
 ### Resolve a DPT
+
+Getting a DPT instance from a given main/sub number:
 
 ```csharp
 public class TemperatureService(IDptFactory dptFactory)
@@ -75,6 +91,22 @@ You can also parse a string identifier:
 var id = new DataPointTypeId("9.001");   // or "DPST-9-1", "DPT-9"
 var dpt = dptFactory.Get(id.Main, id.Sub);
 ```
+
+Getting a DPT instance from a given KNX GroupAddress (e.g. `1/2/3`) requires an `IDptResolver` implementation that can resolve the DPT from the ETS project configuration:
+
+```csharp
+public class TemperatureService(IDptFactory dptFactory, IDptResolver dptResolver)
+{
+    private readonly DptBase _tempDpt;
+    public TemperatureService()
+    {
+        _tempDpt = dptResolver.Resolve("1/2/3");
+    }
+}
+```
+
+Implementations to manage the ETS project configuration are not part of this library.
+See [SRF.Knx.Config](../SRF.Knx.Config/README.md) for an example of how to load and query the ETS project XML using the `SRF.Knx.Config` library.
 
 ### Decode a `GroupValue` received from the bus
 
@@ -164,3 +196,8 @@ public class KnxTelegramDisplay(IDptFactory dptFactory)
 ## Master data
 
 See [Master/README.md](Master/README.md) for details on loading and querying the KNX master XML directly (e.g. to enumerate all available DPTs or inspect format structures).
+
+## See also
+
+- [SRF.Knx.Config](../SRF.Knx.Config/README.md) for ETS project configuration handling and OpenHAB integration
+- [SRF.Network.Knx](https://github.com/sfuchs-eng/SRF.Network/tree/main/Knx) for KNX bus communication and telegram handling

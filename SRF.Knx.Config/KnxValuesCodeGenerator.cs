@@ -103,7 +103,7 @@ public static class KnxValuesCodeGenerator
     private record DptToCSharpTypeMapping(int dptMain, int dptSub, string CSharpType);
     private static DptToCSharpTypeMapping[]? _dptToCSharpTypeMappingOverrides =
     [
-        new(5, 4, "double"), // DPST-5-4 (angle) must be native double instead of byte or int32
+        new(5, 4, "double"), // Very special case: DPST-5-4 (angle) must be native double instead of byte or int32
     ];
 
     /// <summary>

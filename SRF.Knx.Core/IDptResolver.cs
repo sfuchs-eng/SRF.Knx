@@ -10,10 +10,8 @@ namespace SRF.Knx.Core;
 /// while loading the Address vs. DPT mapping from an ETS group address export. The latter is provided by the `SRF.Knx.Config` package.
 /// </summary>
 /// <remarks>
-/// The resolver is used by the KNX connectivity provider in the `SRF.Knx` package to resolve the DPT for a group address when processing incoming or outgoing group address events.
-/// The resolver is also used by the `KnxValueContainerBase` class in the `HomeCompanion.Integrations.Knx` package to resolve the DPT for group addresses when initializing KNX value containers based on the ETS group address export in the domain configuration.
 /// As the IDptResolver is used in performance-sensitive code paths (e.g. processing incoming group address events), it should implement caching to avoid repeated lookups of the same group address. The cache should be thread-safe as group address events may be processed concurrently.
-/// Ensure calling <see cref="ClearCache"/> when the cache needs to be invalidated due to changes in the underlying ETS group address export or DPT factory logic. It's primarily intended for use with constant KNX configurations.
+/// Ensure calling <see cref="ClearCache"/> when the cache needs to be invalidated due to changes in the underlying ETS group address export or DPT factory logic. It's primarily intended for use with constant KNX configurations though.
 /// </remarks>
 public interface IDptResolver
 {

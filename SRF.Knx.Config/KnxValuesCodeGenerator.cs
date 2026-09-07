@@ -97,7 +97,7 @@ public static class KnxValuesCodeGenerator
     }
 
     // -------------------------------------------------------------------------
-    // DPT → C# type mapping  (stable per KNX specification)
+    // DPT → C# type mapping  (stable per KNX specification) TODO: move to SRF.Knx.Core.DPT namespace and make it public for reuse in other contexts (e.g. KnxValueFactory); and use the existing DPT master data to determine the C# type instead of hardcoding it here.
     // -------------------------------------------------------------------------
 
     private record DptToCSharpTypeMapping(int dptMain, int dptSub, string CSharpType);

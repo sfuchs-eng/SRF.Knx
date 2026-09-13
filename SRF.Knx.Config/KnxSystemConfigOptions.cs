@@ -104,5 +104,6 @@ public class KnxSystemConfigOptions
         /// giving OpenHAB time to unload existing Things.
         /// </summary>
         public int WaitTimeBeforeWritingThingsFileSec { get; set; } = 20;
+        public bool WaitOnThingsFileReplacement { get; set; } = false;
     }
 }

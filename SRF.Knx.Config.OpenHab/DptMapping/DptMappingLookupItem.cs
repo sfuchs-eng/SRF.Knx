@@ -1,7 +1,7 @@
 namespace SRF.Knx.Config.OpenHab.DptMapping;
 
 /// <summary>
-/// Normally <see cref="DptMappingLookupItem"/>s are loaded from a JSON file configured in <see cref="KnxConfiguration.OpenHabOptions.KnxDptMappings"/>.
+/// Normally <see cref="DptMappingLookupItem"/>s are loaded from a JSON file configured in <see cref="KnxSystemConfigOptions.OpenHabOptions.KnxDptMappings"/>.
 /// </summary>
 public partial class DptMappingLookupItem
 {

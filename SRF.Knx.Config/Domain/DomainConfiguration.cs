@@ -7,7 +7,7 @@ namespace SRF.Knx.Config.Domain;
 /// and IoT nodes, typically equivalent to an ETS project.
 /// The property <see cref="GroupAddresses"/> contains the ETS exported group address configurations,
 /// while <see cref="Extra"/> contains additional configuration loaded from a separate domain extra config file
-/// as specified in <see cref="KnxConfiguration.KnxDomainConfigFile"/>.
+/// as specified in <see cref="KnxSystemConfigOptions.KnxDomainConfigFile"/>.
 /// </summary>
 public class DomainConfiguration
 {

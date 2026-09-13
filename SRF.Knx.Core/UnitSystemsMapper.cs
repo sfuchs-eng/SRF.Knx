@@ -8,7 +8,7 @@ public class UnitSystemsMapper(
     ILogger<UnitSystemsMapper> logger
 ) : IUnitSystemsMapper
 {
-    public DptUnitsNetMapping? GetDptUnitMapping(DptSimple dptSimple)
+    public DptUnitsNetMapping? GetDptUnitMapping(DptSimple dptSimple, string? queryContextForLogging = null)
     {
         //var dptMaster = dptSimple.Metadata.Dpt ?? throw new InvalidOperationException($"DPT {dptSimple.Id} has no DPT metadata, cannot map to UnitsNet dimension.");
         var dptSubtypeMaster = dptSimple.Metadata.Dpst ?? throw new InvalidOperationException($"DPT {dptSimple.Id} has no DPST metadata, cannot map to UnitsNet dimension.");
@@ -21,18 +21,21 @@ public class UnitSystemsMapper(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Error while trying to map DPT {DptSimpleName} ({DptSimpleId}) to UnitsNet dimension.", dptSimple.Metadata.Dpst?.Name, dptSimple.Id);
+            logger.LogWarning(ex, "Error while trying to map DPT {DptSimpleName} ({DptSimpleId}) to UnitsNet dimension. Context: {QueryContext}", dptSimple.Metadata.Dpst?.Name, dptSimple.Id, queryContextForLogging);
             return null;
         }
 
-        logger.LogWarning("No mapping found for DPT {DptSimpleName} ({DptSimpleId}) to UnitsNet dimension.", dptSimple.Metadata.Dpst?.Name, dptSimple.Id);
+        logger.LogWarning("No mapping found for DPT {DptSimpleName} ({DptSimpleId}) to UnitsNet dimension. Context: {QueryContext}", dptSimple.Metadata.Dpst?.Name, dptSimple.Id, queryContextForLogging);
         return null;
     }
 
     private readonly List<DptUnitsNetMapping> DptNamePrefixToUnitMapping = [
+        new("DPT_Value_1_Ucount", typeof(byte), isUnitAware: false), // 5.010
         new("DPT_Scaling", typeof(UnitsNet.Ratio)),
         new("DPT_Angle", typeof(UnitsNet.Angle)),
         new("DPT_Percent.*", typeof(UnitsNet.Ratio)),
+        new("DPT_Value_4_Count", typeof(int), isUnitAware: false), // 13.001
+        new("DPT_Coefficient", typeof(UnitsNet.Ratio)), // 9.031
         new("DPT_TimePeriod.*", typeof(UnitsNet.Duration)),
         new("DPT_Length.*", typeof(UnitsNet.Length)),
         new("DPT_UElCurrent.*", typeof(UnitsNet.ElectricCurrent)),
@@ -65,6 +68,17 @@ public class UnitSystemsMapper(
         new("DPT_ReactiveEnergy.*", typeof(UnitsNet.ElectricReactiveEnergy)),
         new("DPT_LongDeltaTime.*", typeof(UnitsNet.Duration)),
         new("DPT_DeltaVolumeLiquid.*", typeof(UnitsNet.Volume)),
+        new("DPT_Value_Electric_Potential", typeof(UnitsNet.ElectricPotential)),
+        new("DPT_Value_Electric_Current", typeof(UnitsNet.ElectricCurrent)),
+        new("DPT_Value_Electric_Charge", typeof(UnitsNet.ElectricCharge)),
+        new("DPT_Value_Electric_Resistance", typeof(UnitsNet.ElectricResistance)),
+        new("DPT_Value_Electric_Conductance", typeof(UnitsNet.ElectricConductance)),
+        new("DPT_Value_Electric_Capacitance", typeof(UnitsNet.ElectricCapacitance)),
+        new("DPT_Value_Electric_Inductance", typeof(UnitsNet.ElectricInductance)),
+        new("DPT_Value_Electric_Power", typeof(UnitsNet.Power)),
+        new("DPT_Value_Electric_Energy", typeof(UnitsNet.Energy)),
+        new("DPT_Value_Electric_Power_Factor", typeof(UnitsNet.Ratio)),
+        new("DPT_Value_Electric_Frequency", typeof(UnitsNet.Frequency)),
         new("DPT_Value_Acceleration", typeof(UnitsNet.Acceleration)),
         new("DPT_Value_Power", typeof(UnitsNet.Power)),
         new("DPT_Value_Power_Factor", typeof(UnitsNet.Ratio)),
@@ -78,8 +92,13 @@ public class UnitSystemsMapper(
 /// Used by <see cref="UnitSystemsMapper"/> to map KNX DPTs to UnitsNet dimensions and units.
 /// Register additions to the mapping in <see cref="UnitSystemsMapper.DptNamePrefixToUnitMapping"/> (interface semantics to be extended for this).
 /// </summary>
-public class DptUnitsNetMapping(string dptSubtypeNamePattern, Type unitNetDimension, string? knxUnitSymbolOverride = null, Enum? unitOverride = null)
+public class DptUnitsNetMapping(string dptSubtypeNamePattern, Type unitNetDimension, string? knxUnitSymbolOverride = null, Enum? unitOverride = null, bool isUnitAware = true)
 {
+    /// <summary>
+    /// Whether the mapping is unit-aware, i.e. whether it has a corresponding UnitsNet dimension and unit.
+    /// </summary>
+    public bool IsUnitAware { get; } = isUnitAware;
+
     /// <summary>
     /// The name of the UnitNet dimension type corresponding to the KNX DPT. This is used for generating code and documentation.
     /// </summary>

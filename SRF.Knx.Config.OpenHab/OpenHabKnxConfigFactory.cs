@@ -92,7 +92,7 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
         );
     }
 
-    private KnxOpenHabConfig CreateOHMetaConfiguration(DomainConfiguration domainConfig)
+    public KnxOpenHabConfig Create(DomainConfiguration domainConfig)
     {
         var fresh = new KnxOpenHabConfig();
         ApplyConfigurationUpdates(IdentifyConfigurationUpdates(domainConfig, fresh), fresh);
@@ -103,40 +103,88 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
     private KnxOpenHabConfig? _cachedKnxOpenHabConfig = null;
 
     /// <summary>
-    /// Load if possible, otherwise create new KNX OpenHAB configuration file based on provided domain configuration.
+    /// Updates the cached OpenHAB KNX configuration with the provided domain configuration.
+    /// The update configuration is cached for subsequent calls to <see cref="Get()"/>. It's not saved to disk. Use <see cref="Save(KnxOpenHabConfig)"/> to persist the configuration to disk.
     /// </summary>
-    public KnxOpenHabConfig GetKnxOpenHabConfig(DomainConfiguration domainConfig)
+    /// <param name="domainConfig"></param>
+    public void Update(DomainConfiguration domainConfig)
     {
-        if (_cachedKnxOpenHabConfig != null)
-            return _cachedKnxOpenHabConfig;
+        _cachedKnxOpenHabConfig ??= LoadOrCreateCachedKnxOpenHabConfig(domainConfig);
+        var updates = IdentifyConfigurationUpdates(domainConfig, _cachedKnxOpenHabConfig);
+        ApplyConfigurationUpdates(updates, _cachedKnxOpenHabConfig);
+    }
 
-        var cfgFile = knxConfig.OpenHab.BaseConfigFile;
-        if (File.Exists(cfgFile))
+    private KnxOpenHabConfig LoadOrCreateCachedKnxOpenHabConfig(DomainConfiguration domainConfig)
+    {
+        if (KnxOpenHabConfigFileExists)
         {
-            // load
-            using var fsi = File.OpenRead(cfgFile);
             try
             {
-                _cachedKnxOpenHabConfig = System.Text.Json.JsonSerializer.Deserialize<KnxOpenHabConfig>(fsi, KnxConfigFactory.DefaultJsonOptions)
-                    ?? throw new InvalidDataException($"The KNX OpenHAB configuration file '{cfgFile}' could not be deserialized.");
-                logger.LogTrace("Loaded existing KNX OpenHAB configuration from '{OpenHabKnxMetaConfigFile}'", cfgFile);
-                return _cachedKnxOpenHabConfig;
+                return LoadAsync().GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "The KNX OpenHAB configuration file '{OpenHabKnxMetaConfigFile}' could not be deserialized. Creating fresh config.", cfgFile);
+                logger.LogWarning(ex, "The KNX OpenHAB configuration file '{OpenHabKnxMetaConfigFile}' could not be deserialized. Creating fresh config.", KnxOpenHabConfigFilePath);
             }
         }
 
-        // create fresh and save
-        _cachedKnxOpenHabConfig = this.CreateOHMetaConfiguration(domainConfig);
-        using var fso = File.OpenWrite(cfgFile);
-        System.Text.Json.JsonSerializer.Serialize(fso, _cachedKnxOpenHabConfig, KnxConfigFactory.DefaultJsonOptions);
-        fso.Close();
-        logger.LogWarning("A new KNX OpenHAB configuration file '{OpenHabKnxMetaConfigFile}' has been created. Please edit it and run the generator again.", cfgFile);
+        logger.LogWarning("The KNX OpenHAB configuration file '{OpenHabKnxMetaConfigFile}' could not be loaded. Creating fresh config.", KnxOpenHabConfigFilePath);
+        return this.Create(domainConfig);
+    }
 
+    /// <summary>
+    /// Load if possible, otherwise create new KNX OpenHAB configuration file based on provided domain configuration.<br/>
+    /// It's checked for updates and if any are found, they are applied to the configuration before returning it.<br/>
+    /// </summary>
+    public KnxOpenHabConfig Get(DomainConfiguration domainConfig)
+    {
+        _cachedKnxOpenHabConfig ??= LoadOrCreateCachedKnxOpenHabConfig(domainConfig);
+
+        Update(domainConfig);
+
+        return _cachedKnxOpenHabConfig ?? throw new InvalidOperationException("Failed to load or create KNX OpenHAB configuration.");
+    }
+
+    public KnxOpenHabConfig Get()
+    {
+        if (_cachedKnxOpenHabConfig == null)
+        {
+            var domainConfig = domainConfigurationFactory.Get();
+            _cachedKnxOpenHabConfig = Get(domainConfig);
+        }
         return _cachedKnxOpenHabConfig;
     }
+
+    public void Set(KnxOpenHabConfig knxOpenHabConfig)
+    {
+        _cachedKnxOpenHabConfig = knxOpenHabConfig;
+    }
+
+    private string KnxOpenHabConfigFilePath { get => knxConfig.OpenHab.BaseConfigFile; }
+    private bool KnxOpenHabConfigFileExists { get => File.Exists(KnxOpenHabConfigFilePath); }
+
+    public async Task<KnxOpenHabConfig> LoadAsync()
+    {
+        if (!KnxOpenHabConfigFileExists)
+            throw new FileNotFoundException($"The KNX OpenHAB configuration file '{KnxOpenHabConfigFilePath}' does not exist. Please create it first.");
+        var cfgFile = KnxOpenHabConfigFilePath;
+        using var fsi = File.OpenRead(cfgFile);
+        var cfg = await System.Text.Json.JsonSerializer.DeserializeAsync<KnxOpenHabConfig>(fsi, KnxConfigFactory.DefaultJsonOptions)
+            ?? throw new InvalidDataException($"The KNX OpenHAB configuration file '{cfgFile}' could not be deserialized.");
+        logger.LogTrace("Loaded existing KNX OpenHAB configuration from '{OpenHabKnxMetaConfigFile}'", cfgFile);
+        return cfg;
+    }
+
+    public async Task SaveAsync(KnxOpenHabConfig cfg)
+    {
+        using var fso = File.OpenWrite(KnxOpenHabConfigFilePath);
+        await System.Text.Json.JsonSerializer.SerializeAsync(fso, cfg, KnxConfigFactory.DefaultJsonOptions);
+        fso.Close();
+        logger.LogInformation("Saved KNX OpenHAB configuration to '{OpenHabKnxMetaConfigFile}'", KnxOpenHabConfigFilePath);
+    }
+
+    public void Save(KnxOpenHabConfig openHabConfig)
+        => SaveAsync(openHabConfig).GetAwaiter().GetResult();
 
     public IEnumerable<IOpenHabKnxBaseConfigModifier> IdentifyConfigurationUpdates(DomainConfiguration domainConfig, KnxOpenHabConfig knxOpenHabConfig)
     {
@@ -183,7 +231,7 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
             modifier.Modify(knxOpenHabConfig);
     }
 
-    public void WriteOHConfigFiles(KnxOpenHabConfig knxOpenHabConfig)
+    public async Task WriteOpenHabConfigFilesAsync(KnxOpenHabConfig knxOpenHabConfig)
     {
         var baseConfig = knxOpenHabConfig;
 
@@ -204,11 +252,16 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
         if (File.Exists(thingsFile))
         {
             new FileInfo(thingsFile).MoveTo(thingsBackupFile, true);
-            logger.LogInformation("Renamed '{thingsFile}'. Waiting {delay} s until OpenHAB removed related things.", thingsFile,
-                knxConfig.OpenHab.WaitTimeBeforeWritingThingsFileSec);
-            Thread.Sleep(knxConfig.OpenHab.WaitTimeBeforeWritingThingsFileSec * 1000);
+            if (knxConfig.OpenHab.WaitOnThingsFileReplacement)
+            {
+                logger.LogInformation("Moved old .things file to '{thingsBackupFile}'. Waiting {delay} s until OpenHAB removed related things.", thingsBackupFile,
+                    knxConfig.OpenHab.WaitTimeBeforeWritingThingsFileSec);
+                Thread.Sleep(knxConfig.OpenHab.WaitTimeBeforeWritingThingsFileSec * 1000);
+            }
+            else
+                logger.LogInformation("Moved old .things file to '{thingsBackupFile}'. Not waiting prior creation of new file.", thingsBackupFile);
         }
-        using (var things = new StreamWriter(new FileStream(thingsFile, FileMode.Create), OpenHabConfigFilesEncoding))
+        await using (var things = new StreamWriter(new FileStream(thingsFile, FileMode.Create), OpenHabConfigFilesEncoding))
         {
             bridgeGen.WriteConfig(things);
             things.Close();
@@ -217,19 +270,11 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
 
         // items file
         var itemsFactory = new ItemsFactory(bridgeGen, CfgObjProvider);
-        using var items = new StreamWriter(itemsFile, new FileStreamOptions() { Mode = FileMode.Create, Access = FileAccess.Write });
+        await using var items = new StreamWriter(new FileStream(itemsFile, FileMode.Create), OpenHabConfigFilesEncoding);
         foreach (var item in itemsFactory.Items)
             item.WriteConfig(items);
         items.Close();
         logger.LogInformation("Generated '{itemsFile}'", itemsFile);
-    }
-
-    public void SaveBaseConfig(KnxOpenHabConfig openHabConfig)
-    {
-        using var fs = new FileStream(knxConfig.OpenHab.BaseConfigFile, FileMode.Create);
-        JsonSerializer.Serialize<KnxOpenHabConfig>(fs, openHabConfig, KnxConfigFactory.DefaultJsonOptions);
-        fs.Close();
-        logger.LogInformation("Wrote OpenHAB KNX base configuration to '{metaConfigFile}'", knxConfig.OpenHab.BaseConfigFile);
     }
 
     public IEnumerable<IOpenHabKnxBaseConfigModifier> OverrideWithLegacy(Domain.DomainConfiguration domainConfig, KnxOpenHabConfig cfg, List<KnxGroupAddressConfig> legacyGAC)
@@ -519,11 +564,11 @@ public class OpenHabKnxConfigFactory : IOpenHabKnxConfigFactory
 
         // update OpenHAB configuration
         var kof = this; //serviceProvider.GetRequiredService<IOpenHabKnxConfigFactory>();
-        openHabConfig = kof.GetKnxOpenHabConfig(domainConfiguration);
+        openHabConfig = kof.Get(domainConfiguration);
         var updates = kof.IdentifyConfigurationUpdates(domainConfiguration, openHabConfig);
         kof.ApplyConfigurationUpdates(updates, openHabConfig);
         var legacyUpdates = kof.OverrideWithLegacy(domainConfiguration, openHabConfig, legacyGAC);
         kof.ApplyConfigurationUpdates(legacyUpdates, openHabConfig);
-        kof.SaveBaseConfig(openHabConfig);
+        kof.Save(openHabConfig);
     }
 }

@@ -7,5 +7,5 @@ namespace SRF.Knx.Core;
 /// </summary>
 public interface IUnitSystemsMapper
 {
-    DptUnitsNetMapping? GetDptUnitMapping(DptSimple dptSimple);
+    DptUnitsNetMapping? GetDptUnitMapping(DptSimple dptSimple, string? queryContextForLogging = null);
 }

@@ -6,8 +6,6 @@ using Microsoft.Extensions.Options;
 using SRF.Knx.Config.Domain;
 using SRF.Knx.Config.ETS5;
 using SRF.Knx.Core;
-using SRF.Knx.Core.DPT;
-using UnitsNet;
 
 namespace SRF.Knx.Config;
 
@@ -77,63 +75,6 @@ public class KnxConfigFactory(
         using var fs = new FileStream(options.CurrentValue.KnxDomainConfigFile, FileMode.Create);
         JsonSerializer.Serialize<Domain.DomainExtraConfig>(fs, domainConfig.Extra, DefaultJsonOptions);
         fs.Close();
-    }
-
-    /// <summary>
-    /// Builds the <c>HomeCompanionKnxAutoGen.json</c> mapping from the loaded <see cref="DomainConfiguration"/>.
-    /// For each KNX group address the property name is taken from <see cref="GroupAddressExtraConfig.Name"/>
-    /// when available, with a fallback to the <see cref="ILabelToNameConverter"/>.
-    /// </summary>
-    public Dictionary<string, HomeCompanionAutoGenEntry> GenerateHomeCompanionAutoGen(DomainConfiguration config)
-    {
-        var result = new Dictionary<string, HomeCompanionAutoGenEntry>();
-        foreach (var kvp in config.GroupAddresses)
-        {
-            var extra = config.Extra.TryGetGAExtraConfig(kvp.Value.Address, out var extraConfig) ? extraConfig : null;
-            var address3L = kvp.Key.To3LGroupAddress();
-            var gac = kvp.Value;
-            var name = extra != null && !string.IsNullOrEmpty(extra.Name)
-                ? extra.Name
-                : labelToNameConverter.GetName(gac);
-            var comms = KnxObjectBusCommunication.Write | KnxObjectBusCommunication.Transmit | KnxObjectBusCommunication.Update;
-            if (extra?.HomeCompanion?.AnswerReadRequests ?? false)
-                comms |= KnxObjectBusCommunication.Read;
-            if (extra?.HomeCompanion?.InitializeFromKnxBus ?? false)
-                comms |= KnxObjectBusCommunication.Initialize;
-
-            var hacge = new HomeCompanionAutoGenEntry
-            {
-                PropertyName = name,
-                Label = string.IsNullOrWhiteSpace(gac.Label) ? null : gac.Label,
-                Description = string.IsNullOrWhiteSpace(gac.Description) ? null : gac.Description,
-                Dpt = string.IsNullOrEmpty(gac.DPTs) ? null : gac.DPTs,
-                Communication = comms,
-                WantsOpenHabInitialization = extra?.HomeCompanion?.InitializeFromOpenHab ?? false,
-            };
-            result[address3L] = hacge;
-
-            // does it need to be unit aware? Consult KNX DPT master data for the DPT and check if it has a unit. If so, add the unit to the description.
-            if (gac.DPT is not null)
-            {
-                var dpt = dptFactory.Get(gac.DPT);
-                if (dpt is DptSimple dptSimple && dptSimple.NumericInfo?.Unit is not null)
-                {
-                    var unit = dptSimple.NumericInfo.Unit;
-                    var unitMapping = serviceProvider.GetRequiredService<IUnitSystemsMapper>().GetDptUnitMapping(dptSimple);
-                    hacge.Dimension = unitMapping?.DimensionName ?? unit?.ToString();
-                    hacge.Unit = unitMapping?.UnitName;
-                }
-            }
-        }
-        return result;
-    }
-
-    /// <inheritdoc/>
-    public string GenerateHomeCompanionCode(DomainConfiguration config, Action<Dictionary<string, HomeCompanionAutoGenEntry>>? postProcessEntries = null)
-    {
-        var entries = GenerateHomeCompanionAutoGen(config);
-        postProcessEntries?.Invoke(entries);
-        return KnxValuesCodeGenerator.Generate(entries, dptFactory, loggerFactory);
     }
 
     public DomainConfiguration CreateDomainConfigFromEtsExport()

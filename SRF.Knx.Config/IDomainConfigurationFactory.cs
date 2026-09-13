@@ -34,8 +34,32 @@ public interface IDomainConfigurationFactory
     /// </summary>
     public void UpdateConfigFiles(IEnumerable<IDomainConfigModifier> domainConfigModifiers, DomainConfiguration? allowOverwriteWith = null);
 
-    public Thing AssociateThing(GroupAddress groupAddress, DomainConfiguration domainConfig, out bool isNewThing, out bool gotNewlyAssociated);
-    public Thing AssociateThing(EtsGroupAddressConfig gac, GroupAddressExtraConfig gaec, DomainExtraConfig extraConfig, out bool isNewThing, out bool gotNewlyAssociated);
-
+    /// <summary>
+    /// Applies the given configuration updates to the provided domain configuration.
+    /// No file updates, only in-memory updates. Use <see cref="UpdateConfigFiles"/> to persist the changes to disk.
+    /// </summary>
+    /// <param name="dcUpdates">The configuration updates to apply.</param>
+    /// <param name="domainConfiguration">The domain configuration to update.</param>
     void ApplyConfigurationUpdates(IEnumerable<IDomainConfigModifier> dcUpdates, DomainConfiguration domainConfiguration);
+
+    /// <summary>
+    /// Associates a thing with the given group address in the domain configuration.
+    /// </summary>
+    /// <param name="groupAddress">The group address to associate the thing with.</param>
+    /// <param name="domainConfig">The domain configuration to update.</param>
+    /// <param name="isNewThing">Indicates if a new thing was created.</param>
+    /// <param name="gotNewlyAssociated">Indicates if the thing was newly associated.</param>
+    /// <returns>The associated thing.</returns>
+    public Thing AssociateThing(GroupAddress groupAddress, DomainConfiguration domainConfig, out bool isNewThing, out bool gotNewlyAssociated);
+
+    /// <summary>
+    /// Associates a thing with the given ETS group address configuration in the domain configuration.
+    /// </summary>
+    /// <param name="gac">The ETS group address configuration.</param>
+    /// <param name="gaec">The group address extra configuration.</param>
+    /// <param name="extraConfig">The domain extra configuration.</param>
+    /// <param name="isNewThing">Indicates if a new thing was created.</param>
+    /// <param name="gotNewlyAssociated">Indicates if the thing was newly associated.</param>
+    /// <returns>The associated thing.</returns>
+    public Thing AssociateThing(EtsGroupAddressConfig gac, GroupAddressExtraConfig gaec, DomainExtraConfig extraConfig, out bool isNewThing, out bool gotNewlyAssociated);
 }

@@ -4,7 +4,7 @@ namespace SRF.Knx.Config.Domain;
 
 /// <summary>
 /// Additional configuration for KNX domain elements, e.g. group addresses and their mapping to .NET CLR types, loaded from
-/// an extra configuration file specified in <see cref="KnxConfiguration.KnxDomainConfigFile"/>.
+/// an extra configuration file specified in <see cref="KnxSystemConfigOptions.KnxDomainConfigFile"/>.
 /// </summary>
 public class DomainExtraConfig
 {

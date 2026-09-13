@@ -2,11 +2,13 @@
 
 This library is neither affiliated with nor endorsed by the KNX Association.
 
-It is an independent minimalistic implementation of KNX DPT handling based on the publicly available KNX master data XML.
+It is an independent minimalistic implementation of KNX DPT/PDT/... handling based on the publicly available KNX master data XML.
 
 The library allows KNX Datapoint Type (DPT) encoding, decoding, and formatting. Provides `IDptFactory` as the primary entry point for converting between typed .NET values and the raw `GroupValue` wrapped byte arrays exchanged on the KNX bus.
 
 No external KNX SDK dependency — pure .NET 10 with `Microsoft.Extensions.*`.
+
+Use `SRF.Knx.Config` with your app to benefit from ETS group address export and OpenHAB integration configuration handling, using a central configuration to localize relevant project and configuration files.
 
 ## Concepts
 

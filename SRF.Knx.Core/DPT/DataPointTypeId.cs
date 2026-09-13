@@ -23,6 +23,12 @@ public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<Da
 
     public bool IsMainOnly => Sub == 0;
 
+    /// <summary>
+    /// Provides a DataPointTypeId that represents the main type only, regardless of whether the current instance has a sub-type.
+    /// For example, if the current instance is DPT 1.001, this property will return DPT 1. If the current instance is already a main type (e.g., DPT 1), it will return the same instance.
+    /// </summary>
+    public DataPointTypeId Dpt { get => IsMainOnly ? this : new DataPointTypeId(this.Main); }
+
     public DataPointTypeId(string? dpts)
     {
         InitFromString(dpts);

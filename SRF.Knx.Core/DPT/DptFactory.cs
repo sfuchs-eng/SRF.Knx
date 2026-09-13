@@ -46,7 +46,8 @@ public class DptFactory(
             logger.LogDebug("DPT {Main} requested with main number only (no sub-type). The main type PDT will be used for instantiation. This may lead to incorrect behavior if the assumed PDT does not match the intended sub-type.", dpstId.Main);
         }*/
 
-        var dptMeta = DptMetadata.FromMasterData(dpstId, masterData);
+        var dptMeta = DptMetadata.FromMasterData(dpstId, masterData, logger);
+        var pdtMeta = dptMeta.Pdt;
 
         // Try to find a DPT creator based on the DPST ID
         if (DptCreatorsById.TryGetValue(dpstId, out var creatorInfo))
@@ -55,14 +56,14 @@ public class DptFactory(
         }
 
         // If no creator found by DPST ID, try to find a creator based on the PDT name
-        if (DptCreatorsByPdt.TryGetValue(dptMeta.Pdt.Number, out var creatorInfoByPdt))
+        if (DptCreatorsByPdt.TryGetValue(pdtMeta.Number, out var creatorInfoByPdt))
         {
             return creatorInfoByPdt.Creator(dptMeta, numericInfoFactory);
         }
 
         // use the PDT encoder factory as fall back if no specific DPT creator is found, but a PDT encoder exists for the PDT specified in master data.
         // This allows for dynamic DPT creation based on available PDT encoders, even if no specific DPT creator is registered for the DPST ID or PDT.
-        var pdtEncoder = pdtEncoderFactory.GetPdtEncoder(dptMeta.Pdt);
+        var pdtEncoder = pdtEncoderFactory.GetPdtEncoder(pdtMeta);
         var numericInfo = numericInfoFactory.GetNumericInfo(dptMeta, out var isNumeric);
         if (pdtEncoder != null)
         {

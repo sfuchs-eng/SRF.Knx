@@ -1,6 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using SRF.Knx.Core.DPT;
 
 namespace SRF.Knx.Core.Master;
 
@@ -34,6 +36,98 @@ public class MasterData
 
     [XmlElement("PropertyDataTypes")]
     public PropertyDataTypesDictionary? PropertyDataTypes { get; set; }
+
+    /// <summary>
+    /// Returns the main DPT for the given DPT or DPST id.
+    /// </summary>
+    /// <param name="id">The DPT or DPST id</param>
+    /// <param name="datapointType">The (main) datapoint type if found</param>
+    /// <returns>True if the main datapoint type was found, false otherwise</returns>
+    public bool TryGetDataPointType(DataPointTypeId id, [MaybeNullWhen(false)] out DatapointType datapointType)
+    {
+        //var mainTypeId = new DataPointTypeId(id.Main);
+        //if (DatapointTypes?.Items.TryGetValue(mainTypeId, out datapointType) ?? false)
+        // id may be a sub type but would still match the main types in the dictionary - which is a desired behavior.
+        if (DatapointTypes?.Items.TryGetValue(id.Dpt, out datapointType) ?? false)
+        {
+            return true;
+        }
+        datapointType = null;
+        return false;
+    }
+
+    public bool TryGetDataPointSubType(DataPointTypeId dptId, [MaybeNullWhen(false)] out DatapointType datapointType, [MaybeNullWhen(false)] out DatapointSubtype datapointSubType)
+    {
+        if (TryGetDataPointType(dptId, out datapointType) && datapointType.DatapointSubtypes?.DatapointSubtype != null)
+        {
+            datapointSubType = datapointType.DatapointSubtypes.DatapointSubtype.FirstOrDefault(sub => sub.Number == dptId.Sub);
+            return datapointSubType != null;
+        }
+        datapointSubType = null;
+        return false;
+    }
+
+    public bool TryGetPropertyDataType(DataPointTypeId dpstId, [MaybeNullWhen(false)] out PropertyDataType propertyDataType)
+    {
+        // Prefer subtype-level PDT when present.
+        if (TryGetDataPointSubType(dpstId, out var datapointType, out var datapointSubType)
+            && !string.IsNullOrWhiteSpace(datapointSubType.PDT)
+            && TryGetPropertyDataType(datapointSubType.PDT, out propertyDataType))
+        {
+            return true;
+        }
+
+        // Fall back to the parent DPT-level PDT, which is common for many KNX DPT families (e.g. DPT-9).
+        if (TryGetDataPointType(dpstId, out datapointType)
+            && !string.IsNullOrWhiteSpace(datapointType.PDT)
+            && TryGetPropertyDataType(datapointType.PDT, out propertyDataType))
+        {
+            return true;
+        }
+
+        propertyDataType = null;
+        return false;
+    }
+
+    public bool TryGetPropertyDataType(DatapointSubtype dpst, [MaybeNullWhen(false)] out PropertyDataType propertyDataType)
+    {
+        if (dpst.PDT != null)
+        {
+            return TryGetPropertyDataType(dpst.PDT, out propertyDataType);
+        }
+        propertyDataType = null;
+        return false;
+    }
+
+    public bool TryGetPropertyDataType(DptBase dpt, [MaybeNullWhen(false)] out PropertyDataType propertyDataType)
+    {
+        if (dpt.Metadata?.Dpst?.PDT != null)
+        {
+            return TryGetPropertyDataType(dpt.Metadata.Dpst.PDT, out propertyDataType);
+        }
+        propertyDataType = null;
+        return false;
+    }
+
+    public bool TryGetPropertyDataType(PropertyDataTypeNumber number, [MaybeNullWhen(false)] out PropertyDataType propertyDataType)
+    {
+        if (PropertyDataTypes?.Items.TryGetValue(number, out propertyDataType) ?? false)
+        {
+            return true;
+        }
+        propertyDataType = null;
+        return false;
+    }
+
+    public bool TryGetPropertyDataType(string id, [MaybeNullWhen(false)] out PropertyDataType propertyDataType)
+    {
+        if (PropertyDataTypes?.ItemsByStringId.TryGetValue(id, out propertyDataType) ?? false)
+        {
+            return true;
+        }
+        propertyDataType = null;
+        return false;
+    }
 }
 
 /// <summary>

@@ -3,7 +3,7 @@
 Library to deal with KNX configuration files such as e.g. ETS Group Address exports, XML version of ETS 5.
 Older ETS version exports are not supported, newer ones not yet. There are presently no plans to support KNX IoT neither.
 
-It's developed to configure [OpenHAB](https://www.openhab.org/) for KNX systems and is used by `SRF.Network.Knx`.
+It's developed to configure [OpenHAB](https://www.openhab.org/) for KNX systems and is used by `SRF.Network.Knx` and by `HomeCompanion.Knx` [source](https://github.com/sfuchs-eng/HomeCompanion).
 Fairly complex to install and use, ties to legacy code and ETS projects. Check whether [KNX to openhab generator](https://github.com/maxpautsch/knx_to_openhab) suits you better.
 
 See the command line tool `SRF.Network.Cli` in the [SRF.Network](https://github.com/sfuchs-eng/SRF.Network) solution supporting direct use of the library at hands.

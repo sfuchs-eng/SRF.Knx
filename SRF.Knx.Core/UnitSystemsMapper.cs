@@ -34,6 +34,7 @@ public class UnitSystemsMapper(
         new("DPT_Scaling", typeof(UnitsNet.Ratio)),
         new("DPT_Angle", typeof(UnitsNet.Angle)),
         new("DPT_Percent.*", typeof(UnitsNet.Ratio)),
+        new("DPT_Value_2_Count", typeof(short), isUnitAware: false),
         new("DPT_Value_4_Count", typeof(int), isUnitAware: false), // 13.001
         new("DPT_Coefficient", typeof(UnitsNet.Ratio)), // 9.031
         new("DPT_TimePeriod.*", typeof(UnitsNet.Duration)),
@@ -54,7 +55,6 @@ public class UnitSystemsMapper(
         new("DPT_Value_Volt", typeof(UnitsNet.ElectricPotential)),
         new("DPT_Value_Curr", typeof(UnitsNet.ElectricCurrent)),
         new("DPT_PowerDensity", typeof(UnitsNet.PowerDensity)),
-        //new("DPT_KelvinPerPercent", typeof(UnitsNet.)),
         new("DPT_Power", typeof(UnitsNet.Power)),
         new("DPT_Value_Volume_Flow", typeof(UnitsNet.VolumeFlow)),
         new("DPT_Rain_Amount", typeof(UnitsNet.Length), knxUnitSymbolOverride: "mm", unitOverride: UnitsNet.Units.LengthUnit.Millimeter), // KNX "l/m2" is equivalent to "mm" in UnitsNet, so we use the default unit of "mm" for this mapping.

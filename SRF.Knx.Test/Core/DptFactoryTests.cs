@@ -54,6 +54,21 @@ public class DptFactoryTests
         Assert.That(dpt.Id.Sub, Is.EqualTo(1));
     }
 
+    [TestCase("DPST-1-1", 1, 1, typeof(bool), typeof(bool), Description = "DPT 1.001 is a 1-bit switch (Bit format)")]
+    [TestCase("DPST-5-1", 5, 1, typeof(UnitsNet.Ratio), typeof(byte), Description = "DPT 5.001 is a percentage (0-100%) with a numeric range")]
+    [TestCase("DPST-9-4", 9, 4, typeof(UnitsNet.Illuminance), typeof(float), Description = "DPT 9.004 is illuminance (lux) with a numeric range")]
+    [TestCase("DPST-14-7", 14, 7, typeof(UnitsNet.Angle), typeof(float), Description = "DPT 14.007 is angle (degrees) with a numeric range")]
+    public void Get_ByDpstPrefixedString_ReturnsExpectedDpstAndTypes(string dpstString, int expectedMain, int expectedSub, Type expectedApplicationType, Type expectedBaseType)
+    {
+        var dpt = _factory.Get(dpstString);
+
+        Assert.That(dpt, Is.Not.Null);
+        Assert.That(dpt.Id.Main, Is.EqualTo(expectedMain));
+        Assert.That(dpt.Id.Sub, Is.EqualTo(expectedSub));
+        Assert.That(dpt.ApplicationType, Is.EqualTo(expectedApplicationType));
+        Assert.That(dpt.BaseType, Is.EqualTo(expectedBaseType));
+    }
+
     [Test]
     public void Get_ByDpstPrefixedString_ReturnsExpectedSubtype()
     {
@@ -62,6 +77,16 @@ public class DptFactoryTests
         Assert.That(dpt.Id.Main, Is.EqualTo(9));
         Assert.That(dpt.Id.Sub, Is.EqualTo(4));
         Assert.That(dpt.ApplicationType, Is.EqualTo(typeof(UnitsNet.Illuminance)));
+    }
+
+    [Test]
+    public void Get_ByDpst14_7PrefixedString_ReturnsUnitsNetAngle()
+    {
+        var dpt = _factory.Get("DPST-14-7");
+
+        Assert.That(dpt.Id.Main, Is.EqualTo(14));
+        Assert.That(dpt.Id.Sub, Is.EqualTo(7));
+        Assert.That(dpt.ApplicationType, Is.EqualTo(typeof(UnitsNet.Angle)));
     }
 
     [Test]

@@ -55,6 +55,25 @@ public class DptFactoryTests
     }
 
     [Test]
+    public void Get_ByDpstPrefixedString_ReturnsExpectedSubtype()
+    {
+        var dpt = _factory.Get("DPST-9-4");
+
+        Assert.That(dpt.Id.Main, Is.EqualTo(9));
+        Assert.That(dpt.Id.Sub, Is.EqualTo(4));
+        Assert.That(dpt.ApplicationType, Is.EqualTo(typeof(UnitsNet.Illuminance)));
+    }
+
+    [Test]
+    public void Get_ByDptPrefixedMainOnlyString_ReturnsMainType()
+    {
+        var dpt = _factory.Get("DPT-9");
+
+        Assert.That(dpt.Id.Main, Is.EqualTo(9));
+        Assert.That(dpt.Id.Sub, Is.EqualTo(0));
+    }
+
+    [Test]
     public void Get_MainOnlyId_ReturnsDptUsingMainTypePdt()
     {
         var mainOnlyId = new DataPointTypeId(1, 0);
@@ -146,5 +165,14 @@ public class DptFactoryTests
 
         Assert.That(decoded, Is.TypeOf<byte>());
         Assert.That(decoded, Is.EqualTo((byte)0x3F));
+    }
+
+    [Test]
+    [Description("DPST-9-4 (illuminance, lux) should resolve to UnitsNet.Illuminance application type.")]
+    public void Get_Dpst9_4_UsesUnitsNetIlluminanceApplicationType()
+    {
+        var dpt = _factory.Get(9, 4);
+
+        Assert.That(dpt.ApplicationType, Is.EqualTo(typeof(UnitsNet.Illuminance)));
     }
 }

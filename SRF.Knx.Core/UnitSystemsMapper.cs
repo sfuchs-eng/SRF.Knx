@@ -90,7 +90,7 @@ public class UnitSystemsMapper(
         new("DPT_DeltaTime.*", typeof(UnitsNet.Duration)),
         new("DPT_Rotation_Angle", typeof(UnitsNet.Angle)),
         new("DPT_Value_Temp.*", typeof(UnitsNet.Temperature)),
-        new("DPT_Value_Lux", typeof(UnitsNet.Illuminance)),
+        new("DPT_Value_Lux", typeof(UnitsNet.Illuminance), unitType: typeof(UnitsNet.Units.IlluminanceUnit), unit: UnitsNet.Units.IlluminanceUnit.Lux),
         new("DPT_Value_Wsp.*", typeof(UnitsNet.Speed)),
         new("DPT_Value_Pres", typeof(UnitsNet.Pressure)),
         new("DPT_Value_Humidity", typeof(UnitsNet.RelativeHumidity)),

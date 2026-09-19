@@ -73,6 +73,11 @@ public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<Da
     {
         major = 0;
         minor = 0;
+        if (string.IsNullOrWhiteSpace(dpt))
+            return false;
+
+        dpt = dpt.Trim();
+
         var dotFormat = dpt.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (dotFormat.Length == 2)
         {
@@ -81,12 +86,12 @@ public class DataPointTypeId : IEquatable<DataPointTypeId>, IEqualityComparer<Da
         }
 
         var etsFormat = dpt.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if ("DPT".Equals(etsFormat[0]))
+        if (etsFormat.Length >= 2 && "DPT".Equals(etsFormat[0], StringComparison.OrdinalIgnoreCase))
         {
             // "DPT-1" type for DPT formulation
             return int.TryParse(etsFormat[1], out major);
         }
-        if ("DPST".Equals(etsFormat[0]))
+        if (etsFormat.Length >= 3 && "DPST".Equals(etsFormat[0], StringComparison.OrdinalIgnoreCase))
         {
             // "DPST-1-1" type of DPT formulation
             return int.TryParse(etsFormat[1], out major) && int.TryParse(etsFormat[2], out minor);

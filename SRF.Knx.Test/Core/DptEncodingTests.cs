@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SRF.Knx.Core;
 using SRF.Knx.Core.DPT;
 using SRF.Knx.Core.Master;
+using UnitsNet;
 
 namespace SRF.Knx.Test.Core;
 
@@ -31,6 +32,7 @@ public class DptEncodingTests
             provider,
             new PdtEncoderFactory(),
             new DptNumericInfoFactory(NullLogger<DptNumericInfoFactory>.Instance),
+            new UnitSystemsMapper(provider, NullLogger<UnitSystemsMapper>.Instance),
             NullLogger<DptFactory>.Instance
         );
     }
@@ -81,7 +83,7 @@ public class DptEncodingTests
     /// attention: choose correct type in TestCase, e.g. 10.0 instead of 10 for double values required for scaled numeric DPTs</param>
     /// <param name="gaValue">Group Address telegram native type value to test encoding and decoding of, which should be within the valid range of the DPT</param>
     /// <param name="eps">Epsilon value for floating point comparisons</param>
-    [TestCase(5, 1, 100.0 / 255.0, 50.0, new byte[] { 0x7f }, 100.0 / 255.0 * 0.51)] // DPT 5.001 is a scaled numeric with a coefficient of 100/255
+    [TestCase(5, 1, 100.0 / 255.0, 50.0, new byte[] { 0x80 }, 100.0 / 255.0 * 0.51)] // DPT 5.001 is a scaled numeric with a coefficient of 100/255
     [TestCase(5, 1, 100.0 / 255.0, 100.0, new byte[] { 0xff }, 100.0/255.0*0.51)] // DPT 5.001 with a double test value
     [TestCase(5, 3, 360.0 / 255.0, 30.0, new byte[] { 21 }, 360.0 / 255.0 * 0.51)] // DPT 5.003 is a scaled numeric with a coefficient of 360/255
     [TestCase(5, 4, 1.0, (byte)128, new byte[] { 0x80 }, 128.0)] // DPT 5.004 is a non-scaled numeric with a coefficient of 1.0 (or no coefficient), so the test value should be encoded and decoded without applying any coefficient
@@ -94,53 +96,96 @@ public class DptEncodingTests
         Assert.That(dpt, Is.Not.Null);
         Assert.That(dpt.Id.Main, Is.EqualTo(main));
         Assert.That(dpt.Id.Sub, Is.EqualTo(sub));
+        var normalizedAppValue = NormalizeToApplicationType(dpt, appValue);
+
         if (dpt.IsScaledNumeric)
         {
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(appValue.GetType(), Is.EqualTo(typeof(double)), $"Application value for scaled numeric DPT {dpt.Id} should be of type double to ensure correct application of the coefficient for scaling. Actual type of the application value is {appValue.GetType().Name}. Fix the test setup.");
                 Assert.That(dpt, Is.InstanceOf<DptSimple>());
+                Assert.That(normalizedAppValue.GetType(), Is.EqualTo(dpt.ApplicationType));
             }
 
             var dptSimpleT = (DptSimple)dpt;
             Assert.That(dptSimpleT.NumericInfo, Is.Not.Null);
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(dptSimpleT.NumericInfo!.Coefficient, Is.EqualTo(coefficient).Within(eps), $"Coefficient of the DPT does not match the expected value. Expected: {coefficient}, Actual: {dptSimpleT.NumericInfo.Coefficient}, Epsilon: {eps}");
-                Assert.That(dpt.ApplicationType, Is.EqualTo(typeof(double)));
-            }
+            Assert.That(dptSimpleT.NumericInfo!.Coefficient, Is.EqualTo(coefficient).Within(eps), $"Coefficient of the DPT does not match the expected value. Expected: {coefficient}, Actual: {dptSimpleT.NumericInfo.Coefficient}, Epsilon: {eps}");
 
             var coefficientMaster = dpt.IsScaledNumeric && dpt is DptSimple dptSimple ? dptSimple.NumericInfo?.Coefficient ?? 1.0 : 1.0;
             Assert.That(coefficientMaster, Is.EqualTo(coefficient).Within(100.0/(255.0*100)), $"Coefficient for DPT {dpt.Id} does not match the expected value. Expected: {coefficient}, Actual: {coefficientMaster}");
         }
         else
         {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(dpt.ApplicationType, Is.EqualTo(dpt.ValueType), $"For non-scaled DPT {dpt.Id}, the application type should be the same as the value type. Expected: {dpt.ValueType}, Actual: {dpt.ApplicationType}");
-                Assert.That(appValue.GetType(), Is.EqualTo(dpt.ApplicationType), $"Application value type does not match the expected application type of the DPT. Expected: {dpt.ApplicationType}, Actual: {appValue.GetType()}. Fix the test setup.");
-            }
-
-            Assert.That(dpt.ApplicationType, Is.EqualTo(dpt.ValueType));
+            Assert.That(normalizedAppValue.GetType(), Is.EqualTo(dpt.ApplicationType), $"Application value type does not match the expected application type of the DPT. Expected: {dpt.ApplicationType}, Actual: {normalizedAppValue.GetType()}. Fix the test setup.");
+            if (!typeof(IQuantity).IsAssignableFrom(dpt.ApplicationType))
+                Assert.That(dpt.ApplicationType, Is.EqualTo(dpt.BaseType), $"For non-unit-aware DPT {dpt.Id}, the application type should be the same as the value type. Expected: {dpt.BaseType}, Actual: {dpt.ApplicationType}");
         }
 
         // encoding test
-        var groupValue = dpt.ToGroupValue(appValue);
+        var groupValue = dpt.ToGroupValue(normalizedAppValue);
         Assert.That(groupValue, Is.Not.Null);
         Assert.That(groupValue.Value, Is.EqualTo(gaValue), $"Encoded group value bytes do not match the expected bytes. Expected: {BitConverter.ToString(gaValue)}, Actual: {BitConverter.ToString(groupValue.Value)}");
 
         // decoding test
         var decodedAppValue = dpt.ToValue(groupValue);
         Assert.That(decodedAppValue, Is.Not.Null);
-        if (appValue is IConvertible && decodedAppValue is IConvertible)
+
+        if (normalizedAppValue is IQuantity expectedQuantity && decodedAppValue is IQuantity decodedQuantity)
         {
-            double appValueDouble = Convert.ToDouble(appValue, System.Globalization.CultureInfo.InvariantCulture);
+            var expectedDecodedFromKnx = dpt.ToValue(new GroupValue(gaValue));
+            Assert.That(expectedDecodedFromKnx, Is.InstanceOf<IQuantity>(), $"Expected KNX decoding for DPT {dpt.Id} should produce an IQuantity.");
+
+            var knxUnit = ResolveKnxUnit(dpt);
+            var expectedMagnitude = ((IQuantity)expectedDecodedFromKnx).As(knxUnit);
+            var decodedMagnitude = decodedQuantity.As(knxUnit);
+            Assert.That(decodedMagnitude, Is.EqualTo(expectedMagnitude).Within(eps), $"Decoded quantity value does not match the expected KNX-decoded quantity value within the expected epsilon. Expected: {expectedMagnitude}, Actual: {decodedMagnitude}, Epsilon: {eps}");
+            return;
+        }
+
+        if (normalizedAppValue is IConvertible && decodedAppValue is IConvertible)
+        {
+            double appValueDouble = Convert.ToDouble(normalizedAppValue, System.Globalization.CultureInfo.InvariantCulture);
             double decodedAppValueDouble = Convert.ToDouble(decodedAppValue, System.Globalization.CultureInfo.InvariantCulture);
             Assert.That(decodedAppValueDouble, Is.EqualTo(appValueDouble).Within(eps), $"Decoded application value does not match the original application value within the expected epsilon. Expected: {appValueDouble}, Actual: {decodedAppValueDouble}, Epsilon: {eps}");
         }
         else
         {
-            Assert.That(decodedAppValue, Is.EqualTo(appValue), $"Decoded application value does not match the original application value. Expected: {appValue}, Actual: {decodedAppValue}");
+            Assert.That(decodedAppValue, Is.EqualTo(normalizedAppValue), $"Decoded application value does not match the original application value. Expected: {normalizedAppValue}, Actual: {decodedAppValue}");
         }
+    }
+
+    private static object NormalizeToApplicationType(DptBase dpt, object appValue)
+    {
+        if (dpt.ApplicationType.IsInstanceOfType(appValue))
+            return appValue;
+
+        if (typeof(IQuantity).IsAssignableFrom(dpt.ApplicationType))
+        {
+            if (appValue is not IConvertible)
+                throw new InvalidOperationException($"Test value for DPT {dpt.Id} must be numeric when application type is quantity. Actual type: {appValue.GetType().FullName}");
+
+            var knxUnit = ResolveKnxUnit(dpt);
+
+            var magnitude = Convert.ToDouble(appValue, System.Globalization.CultureInfo.InvariantCulture);
+            var quantity = Quantity.From(magnitude, knxUnit);
+            if (!dpt.ApplicationType.IsInstanceOfType(quantity))
+                throw new InvalidOperationException($"Constructed quantity type {quantity.GetType().FullName} does not match DPT application type {dpt.ApplicationType.FullName} for DPT {dpt.Id}.");
+
+            return quantity;
+        }
+
+        if (appValue is IConvertible)
+            return Convert.ChangeType(appValue, dpt.ApplicationType, System.Globalization.CultureInfo.InvariantCulture)
+                   ?? throw new InvalidOperationException($"Could not convert test value for DPT {dpt.Id} to {dpt.ApplicationType.FullName}");
+
+        return appValue;
+    }
+
+    private static Enum ResolveKnxUnit(DptBase dpt)
+    {
+        var knxUnitProperty = dpt.GetType().GetProperty("KnxUnit");
+        if (knxUnitProperty?.GetValue(dpt) is not Enum knxUnit)
+            throw new InvalidOperationException($"DPT {dpt.Id} is quantity-based, but KnxUnit could not be resolved from type {dpt.GetType().FullName}.");
+        return knxUnit;
     }
 }

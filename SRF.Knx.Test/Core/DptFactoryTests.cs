@@ -27,6 +27,7 @@ public class DptFactoryTests
             provider,
             new PdtEncoderFactory(),
             new DptNumericInfoFactory(NullLogger<DptNumericInfoFactory>.Instance),
+            new UnitSystemsMapper(provider, NullLogger<UnitSystemsMapper>.Instance),
             NullLogger<DptFactory>.Instance
         );
     }

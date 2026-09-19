@@ -39,16 +39,18 @@ public abstract class DptBase(DataPointTypeId id, DptMetadata dptMetadata)
     /// <summary>
     /// .NET type of the value represented by this DPT in KNX telegrams, e.g. bool for DPT 1.001, byte for DPT 5.001, etc.
     /// It's the type according KNX masterdata for this DPT, and may differ from the <see cref="ApplicationType"/> used in the application.<br/>
-    /// It should be the type returned by <see cref="ToValue(GroupValue)"/>.
+    /// The associated PDT encoder returns this type. Yet <see cref="ToValue(GroupValue)"/> shall return a value of the type indicated by <see cref="ApplicationType"/>,
+    /// which may be different from this type, e.g. for scaled numeric DPTs, where the application type is double, but the KNX telegram type is byte.
     /// </summary>
-    public abstract Type ValueType { get; }
+    public abstract Type BaseType { get; }
 
     /// <summary>
     /// .NET type of the value used in the application for this DPT, e.g. bool for DPT 1.001, double for DPT 5.001 (scaled), etc.<br/>
-    /// By default it returns the same type as <see cref="ValueType"/>, but can be overridden in derived classes to provide a different type for application use.<br/>
+    /// By default it returns the same type as <see cref="BaseType"/>, but can be overridden in derived classes to provide a different type for application use.<br/>
     /// In particular, DptSimple may return a scaled numeric type (e.g. double) for application use or a different type for unit-aware DPTs (e.g. UnitsNet.Temperature).
+    /// The IValue is expected to be of this type, and the <see cref="ToGroupValue(object)"/> method should accept a value of this type.
     /// </summary>
-    public virtual Type ApplicationType => ValueType;
+    public virtual Type ApplicationType => BaseType;
 
     public virtual bool IsNumeric => false;
 
@@ -57,7 +59,8 @@ public abstract class DptBase(DataPointTypeId id, DptMetadata dptMetadata)
     public virtual string Format(
         GroupValue groupValue,
         string? language,
-        IFormatProvider? formatProvider
+        IFormatProvider? formatProvider,
+        string? format = null
     )
     {
         language ??= System.Globalization.CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
@@ -69,13 +72,14 @@ public abstract class DptBase(DataPointTypeId id, DptMetadata dptMetadata)
 
         string formatted = value switch
         {
-            DateTime dt => dt.ToString(formatProvider),
-            DateTimeOffset dto => dto.ToString(formatProvider),
-            DateOnly dateOnly => dateOnly.ToString(null, formatProvider),
-            TimeOnly timeOnly => timeOnly.ToString(null, formatProvider),
-            TimeSpan span => span.ToString(),
+            DateTime dt => dt.ToString(format, formatProvider),
+            DateTimeOffset dto => dto.ToString(format, formatProvider),
+            DateOnly dateOnly => dateOnly.ToString(format, formatProvider),
+            TimeOnly timeOnly => timeOnly.ToString(format, formatProvider),
+            TimeSpan span => span.ToString(format, formatProvider),
             byte[] bytes => Convert.ToHexString(bytes),
-            IFormattable formattable => formattable.ToString(null, formatProvider),
+            UnitsNet.IQuantity quantity => quantity.ToString(format ?? "S1", formatProvider), // single decimal point, with unit, e.g. "23.5 °C" for a temperature quantity, or "50 %" for a percentage quantity, etc.
+            IFormattable formattable => formattable.ToString(format, formatProvider),
             _ => Convert.ToString(value, formatProvider) ?? string.Empty,
         };
 

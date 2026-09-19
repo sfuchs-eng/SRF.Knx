@@ -14,7 +14,7 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
     public required Func<T, GroupValue> Encoder { get; init; }
     public required Func<GroupValue, T> Decoder { get; init; }
 
-    public override Type ValueType => typeof(T);
+    public override Type BaseType => typeof(T);
 
     public override Type ApplicationType => IsScaledNumeric && typeof(T) != typeof(decimal) ? typeof(double) : typeof(T);
 
@@ -22,6 +22,7 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
 
     public GroupValue Encode(T value) => Encoder(value);
 
+    /// <inheritdoc/>
     public override GroupValue ToGroupValue(object value)
     {
         if (IsScaledNumeric)
@@ -38,7 +39,7 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
             // We do this anyhow even though only needed for scaled DPTs with a numeric type that has a smaller range than double.
             // But floating point targets are not common for scaled DPTs, and if they are used, they likely have a coefficient of 1.0, so the rounding will not have any effect in that case, but it will also not cause any harm, so we can just apply this rounding for all scaled numerics for simplicity.
             double step = NumericInfo?.Coefficient ?? 1.0;
-            if ( !1.0.Equals(step))
+            if (!1.0.Equals(step))
             {
                 doubleValue = Math.Round(doubleValue / step) * step + 0.5;
             }
@@ -51,6 +52,7 @@ public class DptSimple<T> : DptSimple, IDptEncoder<T>
         }
     }
 
+    /// <inheritdoc/>
     public override object ToValue(GroupValue groupValue)
     {
         var value = Decode(groupValue);

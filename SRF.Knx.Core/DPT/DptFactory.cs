@@ -11,10 +11,16 @@ namespace SRF.Knx.Core.DPT;
 /// If no specific creator is found, the factory falls back to using the PDT encoder factory to create a generic DPT instance based on the available PDT encoder.
 /// </summary>
 /// <typeparam name="DptFactory"></typeparam>
+/// <remarks>
+/// The factory is designed to be used with dependency injection, and it requires an <see cref="IKnxMasterDataProvider"/> to supply the master data for DPT creation, an <see cref="IPdtEncoderFactory"/> to provide PDT encoders, and an <see cref="IDptNumericInfoFactory"/> to provide numeric information for DPTs. It also uses an <see cref="IUnitSystemsMapper"/> to map KNX units to UnitsNet units for unit-aware DPTs.
+/// <br/>
+/// The factory does not cache DPT instances. If Get() performance is important, consider wrapping the factory in a caching layer that exhibits the IDptFactory interface (e.g., <see cref="DptMemoryCache"/>).
+/// </remarks>
 public class DptFactory(
     IKnxMasterDataProvider masterDataProvider,
     IPdtEncoderFactory pdtEncoderFactory,
     IDptNumericInfoFactory dptNumericInfoFactory,
+    IUnitSystemsMapper unitSystemsMapper,
     ILogger<DptFactory> logger) : IDptFactory
 {
     private readonly Master.KnxMasterData masterData = masterDataProvider.GetMasterData();
@@ -55,6 +61,51 @@ public class DptFactory(
             return creatorInfo.Creator(dptMeta, numericInfoFactory);
         }
 
+        var queryContextForLogging = $"DPST {dpstId}, PDT {pdtMeta.Name} ({pdtMeta.Number})";
+        var pdtEncoder = pdtEncoderFactory.GetPdtEncoder(pdtMeta);
+
+        // create DptSimpleQuantity<TEncoder, TApp, TUnit> for unit-aware DPTs based on the PDT encoder and numeric info. Use reflection to create the generic type instance dynamically.
+        var unitMapping = unitSystemsMapper.GetDptUnitsNetMapping(dptMeta, queryContextForLogging);
+        if (unitMapping is not null && unitMapping.IsUnitAware)
+        {
+            if (pdtEncoder is null)
+            {
+                logger.LogWarning("No PDT encoder found for PDT {PdtName} ({PdtNumber}) while trying to create unit-aware DPT {DpstId}. Context: {QueryContext}", pdtMeta.Name, pdtMeta.Number, dpstId, queryContextForLogging);
+                throw new NotSupportedException($"No PDT encoder found for PDT {pdtMeta.Name} ({pdtMeta.Number}) while trying to create unit-aware DPT {dpstId}. Context: {queryContextForLogging}");
+            }
+
+            var unitEnumType = unitMapping.UnitNetUnitType ?? throw new InvalidOperationException($"UnitNetUnitType is not set for mapping of DPST {dptMeta.Id} ({dptMeta.Dpst?.Name}). Context: {queryContextForLogging}");
+            var knxUnit = unitMapping.UnitNetUnit ?? throw new InvalidOperationException($"UnitNetUnit is not set for mapping of DPST {dptMeta.Id} ({dptMeta.Dpst?.Name}). Context: {queryContextForLogging}");
+            Type? dptType = null;
+
+            try
+            {
+                dptType = typeof(DptSimpleQuantity<,,>).MakeGenericType(
+                        pdtEncoder.GetType().GetGenericArguments()[0], // TEncoder
+                        unitMapping.UnitNetDimension, // TApp
+                        unitEnumType // TUnit
+                    );
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while trying to create unit-aware DPT {DpstId} with PDT {PdtName} ({PdtNumber}) and UnitsNet dimension {UnitNetDimension}. Context: {QueryContext}", dpstId, pdtMeta.Name, pdtMeta.Number, unitMapping.UnitNetDimension, queryContextForLogging);
+                throw new NotSupportedException($"Error while trying to create unit-aware DPT {dpstId} with PDT {pdtMeta.Name} ({pdtMeta.Number}) and UnitsNet dimension {unitMapping.UnitNetDimension}. Context: {queryContextForLogging}", ex);
+            }
+
+            // DptSimpleQuantity<,,> ctor (DataPointTypeId id, DptMetadata dptMetadata, PdtEncoder<TEncoder> encoder, TUnit knxUnit, NumericInfo? numericInfo = null)
+            try
+            {
+                var dpt = (DptBase)(Activator.CreateInstance(dptType, dpstId, dptMeta, pdtEncoder, knxUnit, numericInfoFactory.GetNumericInfo(dptMeta, out _))
+                    ?? throw new InvalidOperationException($"Failed to create unit-aware DPT instance of type {dptType} for DPST {dpstId} using PDT encoder for PDT {pdtMeta.Name} ({pdtMeta.Number})"));
+                return dpt;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while trying to create unit-aware DPT instance of type {DptType} for DPST {DpstId}. Context: {QueryContext}", dptType, dpstId, queryContextForLogging);
+                throw new NotSupportedException($"Error while trying to create unit-aware DPT instance of type {dptType} for DPST {dpstId}. Context: {queryContextForLogging}", ex);
+            }
+        }
+        
         // If no creator found by DPST ID, try to find a creator based on the PDT name
         if (DptCreatorsByPdt.TryGetValue(pdtMeta.Number, out var creatorInfoByPdt))
         {
@@ -63,7 +114,6 @@ public class DptFactory(
 
         // use the PDT encoder factory as fall back if no specific DPT creator is found, but a PDT encoder exists for the PDT specified in master data.
         // This allows for dynamic DPT creation based on available PDT encoders, even if no specific DPT creator is registered for the DPST ID or PDT.
-        var pdtEncoder = pdtEncoderFactory.GetPdtEncoder(pdtMeta);
         var numericInfo = numericInfoFactory.GetNumericInfo(dptMeta, out var isNumeric);
         if (pdtEncoder != null)
         {

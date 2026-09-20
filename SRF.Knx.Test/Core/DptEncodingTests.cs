@@ -174,9 +174,10 @@ public class DptEncodingTests
 
         Assert.That(decoded, Is.InstanceOf<IQuantity>());
         var quantity = (IQuantity)decoded;
+        var knxUnit = ResolveKnxUnit(dpt);
 
         var expectedMagnitude = rawValue * coefficient;
-        var actualMagnitude = Convert.ToDouble(quantity.Value, System.Globalization.CultureInfo.InvariantCulture);
+        var actualMagnitude = quantity.As(knxUnit);
         Assert.That(actualMagnitude, Is.EqualTo(expectedMagnitude).Within(eps),
             $"Decoded magnitude for {dpt.Id} must be raw*coefficient exactly once.");
 

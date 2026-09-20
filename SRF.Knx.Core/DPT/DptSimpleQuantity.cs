@@ -49,7 +49,6 @@ public class DptSimpleQuantity<TEncoder, TApp, TUnit>(DataPointTypeId id, DptMet
             throw new InvalidOperationException($"DPT {Id} is defined as unit-aware numeric, but the decoded value is not IConvertible, which is required to create a UnitsNet quantity. Actual type of the decoded value is {value?.GetType().Name ?? "null"}");
         }
         double doubleValue = valueConvertible.ToDouble(System.Globalization.CultureInfo.InvariantCulture);
-        doubleValue *= NumericInfo?.Coefficient ?? 1.0;
         var quantity = UnitsNet.Quantity.From(doubleValue, KnxUnit);
         return quantity;
     }

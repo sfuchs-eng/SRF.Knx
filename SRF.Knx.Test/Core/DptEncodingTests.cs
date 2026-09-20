@@ -154,6 +154,42 @@ public class DptEncodingTests
         }
     }
 
+    [TestCase(5, 1, (byte)0xff)]
+    [TestCase(5, 3, (byte)0xff)]
+    [Description("Scaled unit-aware DPTs must apply the KNX coefficient exactly once when decoding and formatting.")]
+    public void DecodeAndFormat_ScaledUnitAwareDpts_ApplyCoefficientExactlyOnce(int main, int sub, byte rawValue)
+    {
+        var dpt = _factory.Get(main, sub);
+
+        Assert.That(typeof(IQuantity).IsAssignableFrom(dpt.ApplicationType),
+            $"Test expects a unit-aware DPT, but {dpt.Id} has application type {dpt.ApplicationType.Name}.");
+        Assert.That(dpt, Is.InstanceOf<DptSimple>());
+
+        var simple = (DptSimple)dpt;
+        var coefficient = simple.NumericInfo?.Coefficient ?? 1.0;
+        var eps = Math.Max(0.001, Math.Abs(coefficient) * 0.51);
+
+        var groupValue = new GroupValue([rawValue]);
+        var decoded = dpt.ToValue(groupValue);
+
+        Assert.That(decoded, Is.InstanceOf<IQuantity>());
+        var quantity = (IQuantity)decoded;
+
+        var expectedMagnitude = rawValue * coefficient;
+        var actualMagnitude = Convert.ToDouble(quantity.Value, System.Globalization.CultureInfo.InvariantCulture);
+        Assert.That(actualMagnitude, Is.EqualTo(expectedMagnitude).Within(eps),
+            $"Decoded magnitude for {dpt.Id} must be raw*coefficient exactly once.");
+
+        var roundTrip = dpt.ToGroupValue(decoded);
+        Assert.That(roundTrip.Value, Is.EqualTo(groupValue.Value),
+            $"Round-trip encode/decode for {dpt.Id} must preserve raw telegram value.");
+
+        var expectedFormatted = quantity.ToString("S1", System.Globalization.CultureInfo.InvariantCulture);
+        var formatted = dpt.Format(groupValue, "en", System.Globalization.CultureInfo.InvariantCulture, null);
+        Assert.That(formatted, Is.EqualTo(expectedFormatted),
+            $"DPT formatter for {dpt.Id} must reflect the correctly scaled quantity.");
+    }
+
     private static object NormalizeToApplicationType(DptBase dpt, object appValue)
     {
         if (dpt.ApplicationType.IsInstanceOfType(appValue))

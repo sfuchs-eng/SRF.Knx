@@ -1,4 +1,3 @@
-using System.Numerics;
 using Microsoft.Extensions.Logging.Abstractions;
 using SRF.Knx.Core;
 using SRF.Knx.Core.DPT;

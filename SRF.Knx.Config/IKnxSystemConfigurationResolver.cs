@@ -13,7 +13,7 @@ namespace SRF.Knx.Config;
 /// Use only for static configuration data.<br/>
 /// Default implementation is <see cref="KnxSystemConfigurationCached"/> which is registered in the DI container by <see cref="ExtensionsHosting.AddKnxConfig(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/>, loading the configuration via <see cref="IKnxConfigFactory"/>.
 /// </remarks>
-public interface IKnxSystemConfiguration : IDptResolver
+public interface IKnxSystemConfigurationResolver : IDptResolver
 {
     GroupAddressMeta GetGroupAddressMeta(GroupAddress groupAddress);
     GroupAddressMeta GetGroupAddressMeta(string name);

@@ -5,7 +5,7 @@ namespace SRF.Knx.Config;
 
 /// <summary>
 /// Application runtime enriched KNX Group Address configuration, containing the ETS export configuration and the Extra configuration, as well as the resolved DPT object for the group address.
-/// See <see cref="IKnxSystemConfiguration"/> for details.
+/// See <see cref="IKnxSystemConfigurationResolver"/> for details.
 /// </summary>
 public class GroupAddressMeta
 {

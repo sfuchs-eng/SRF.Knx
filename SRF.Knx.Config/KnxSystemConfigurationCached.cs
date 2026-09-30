@@ -5,10 +5,10 @@ using SRF.Knx.Core.DPT;
 namespace SRF.Knx.Config;
 
 /// <summary>
-/// Default implementation of <see cref="IKnxSystemConfiguration"/> that caches all group address metadata in memory for efficient lookup by group address or name.
+/// Default implementation of <see cref="IKnxSystemConfigurationResolver"/> that caches all group address metadata in memory for efficient lookup by group address or name.
 /// The cache is initialized in the constructor and is immutable afterwards.
 /// </summary>
-public class KnxSystemConfigurationCached : IKnxSystemConfiguration
+public class KnxSystemConfigurationCached : IKnxSystemConfigurationResolver
 {
     private readonly Dictionary<GroupAddress, GroupAddressMeta> GroupAddressesByAddress;
     private readonly Dictionary<string, GroupAddressMeta> GroupAddressesByName;

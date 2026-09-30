@@ -23,7 +23,7 @@ public static class ExtensionsHosting
         services.TryAddSingleton(TimeProvider.System);
         services.AddOptions<KnxSystemConfigOptions>().BindConfiguration(sectionName ?? KnxSystemConfigOptions.SectionName);
 
-        // Domain Config Services to base on, e.g. for running with Falcon SDK and SRF.Network.Knx
+        // Domain Config Services to base on, e.g. for running with Falcon SDK and/or SRF.Network.Knx
         services.TryAddSingleton<Domain.ILabelToNameConverter, Domain.DefaultLabelToNameConverter>();
         services.TryAddSingleton<IDomainConfigurationFactory, Domain.DomainConfigurationFactory>();
         services.TryAddSingleton<DomainConfiguration>((s) =>
@@ -37,11 +37,11 @@ public static class ExtensionsHosting
 
         services.TryAddSingleton<IKnxMasterDataProvider, KnxMasterDataProvider>();
 
-        services.TryAddSingleton<IKnxSystemConfiguration>(sp =>
+        services.TryAddSingleton<IKnxSystemConfigurationResolver>(sp =>
             new KnxSystemConfigurationCached(
                 GroupAddressConfiguration.FromDomainConfig(sp.GetRequiredService<DomainConfiguration>()),
                 sp.GetRequiredService<IDptFactory>()));
-        services.AddSingleton<IDptResolver>(sp => sp.GetRequiredService<IKnxSystemConfiguration>()); // error out in case IDptResolver is already registered. Libraries using KnxCore only get a simpler IDptResolver which is using TryAddSingleton.
+        services.AddSingleton<IDptResolver>(sp => sp.GetRequiredService<IKnxSystemConfigurationResolver>()); // error out in case IDptResolver is already registered. Libraries using KnxCore only get a simpler IDptResolver which is using TryAddSingleton.
 
         services.AddKnxCore();
 

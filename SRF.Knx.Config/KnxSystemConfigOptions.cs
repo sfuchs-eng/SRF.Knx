@@ -64,6 +64,14 @@ public class KnxSystemConfigOptions
         /// to point at the <c>HomeCompanion.Local/Values/</c> project folder on your machine.
         /// </summary>
         public string OpenHabValuesCodeGenFilePath { get; set; } = "OpenHabValues.generated.cs";
+
+        /// <summary>
+        /// If true, OpenHAB items that have a KNX mapping will be ignored and not included in the generated <c>OpenHabValues.generated.cs</c> source file. This is useful if you want to avoid duplicate value definitions for items that are already mapped to KNX group addresses.
+        /// If false, all OpenHAB items will be included in the generated source file, regardless of whether they have a KNX mapping or not.
+        /// Comparison takes place by item name, case-insensitive. The KNX items are determined from the OpenHAB KNX configuration generated from the ETS GroupAddress export file.
+        /// </summary>
+        /// <value>default true</value>
+        public bool IgnoreOpenHabItemsWithKnxMapping { get; set; } = true;
     }
 
     /// <summary>
